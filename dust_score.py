@@ -1,5 +1,6 @@
 from collections import Counter
 
+_DUST_CACHE = {}
 
 def _rolling_window_serie(serie, window, length_, step):
     '''It yields lists of items with a window number of elements'''
@@ -76,3 +77,13 @@ def calculate_dust_score(seq, windowsize, windowstep):
     # max score should be 100 not 31
     dustscore = sum(dustscores) / len(dustscores) * 100 / 31
     return dustscore
+
+
+def dust_score_is_ok(seq, windowsize, windowstep, threshold):
+    try:
+        return _DUST_CACHE[seq]
+    except KeyError:
+        dust = calculate_dust_score(seq, windowsize, windowstep)
+        result = dust < threshold
+        _DUST_CACHE[seq] = result
+        return result

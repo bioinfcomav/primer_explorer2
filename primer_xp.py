@@ -1,26 +1,12 @@
 import io
 from itertools import groupby
 from collections import Counter
-from dust_score import calculate_dust_score
+from dust_score import dust_score_is_ok
+from seq_filters import gc_is_ok, blacklisted_seqs_in_seq
 
 GT = '>'
 GT_BIN = b'>'
 GT_CHAR = ord(GT_BIN)
-G_CHAR = ord(b'G')
-C_CHAR = ord(b'C')
-
-
-def blacklisted_seqs_in_seq(kmer):
-    if b'N' in kmer:
-        return True
-    if b'AAAA' in kmer:
-        return True
-    if b'GGGG' in kmer:
-        return True
-    if b'TTTT' in kmer:
-        return True
-    if b'CCCC' in kmer:
-        return True
 
 
 def parse_fasta(fhand, ignore_softmask=True):
@@ -43,46 +29,6 @@ def parse_fasta(fhand, ignore_softmask=True):
             yield {'seq_id': seq_id, 'seq': seq.upper()}
         else:
             yield {'seq_id': seq_id, 'seq': seq}
-
-
-def n_in_seq(seq):
-    return b'N' in seq
-
-
-def calculate_gc(seq):
-    count = Counter(seq)
-    g_count = count[G_CHAR]
-    c_count = count[C_CHAR]
-    gc = (g_count + c_count) / len(seq)
-    return gc
-
-
-_GC_RESULT_CACHE = {}
-
-
-def gc_is_ok(kmer, min_gc, max_gc):
-    try:
-        return _GC_RESULT_CACHE[kmer]
-    except KeyError:
-        if min_gc <= calculate_gc(kmer) <= max_gc:
-            result = True
-        else:
-            result = False
-        _GC_RESULT_CACHE[kmer] = result
-        return result
-
-
-_DUST_CACHE = {}
-
-
-def dust_score_is_ok(seq, windowsize, windowstep, threshold):
-    try:
-        return _DUST_CACHE[seq]
-    except KeyError:
-        dust = calculate_dust_score(seq, windowsize, windowstep)
-        result = dust < threshold
-        _DUST_CACHE[seq] = result
-        return result
 
 
 class KmerLocationGenerator():
@@ -133,7 +79,6 @@ def no_name(genome_fhand, kmer_len, filtering_criteria):
     print(len(list(kmer_location_tuples)))
     print(kmer_generator.kmer_counter.most_common(10))
     print('hola')
-    print(calculate_dust_score(b'CCCAAAAT', windowsize=64, windowstep=32))
 
 
 GENOME_FASTA = b'''>chrom1
@@ -146,10 +91,11 @@ TATGGAGACTACGACCTAGCTACGGCATGATACGGCATACGCATACGCA
 
 TOMATO_CHROM_FASTA_GZ = '/home/jope/devel3/primer_explorer_old_version/genome/S_lycopersicum_chromosomes.3.00.chrom1.fasta.gz'
 
+
 if __name__ == '__main__':
     genome_fasta_fhand = io.BytesIO(GENOME_FASTA)
     #genome_fasta_fhand = io.StringIO(GENOME_FASTA.decode())
     #genome_fasta_fhand = gzip.open(TOMATO_CHROM_FASTA_GZ, 'rb')
     genome_fasta_fhand = open('chrom1.500k.fasta', 'rb')
-    genome_fasta_fhand = open('chrom1.100k.fasta', 'rb')
+    genome_fasta_fhand = open('chrom1.500k.fasta', 'rb')
     no_name(genome_fasta_fhand, kmer_len=8, filtering_criteria='')
