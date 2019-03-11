@@ -1,12 +1,7 @@
 import io
-import gzip
-from itertools import (groupby, zip_longest, combinations, islice)
-import itertools
-import collections
+from itertools import groupby
 from collections import Counter
-
-#from parse_fasta import parse_fasta
-#from generate_kmer_locations import generate_kmer_locations
+from dust_score import calculate_dust_score
 
 GT = '>'
 GT_BIN = b'>'
@@ -15,8 +10,22 @@ G_CHAR = ord(b'G')
 C_CHAR = ord(b'C')
 
 
+def blacklisted_seqs_in_seq(kmer):
+    if b'N' in kmer:
+        return True
+    if b'AAAA' in kmer:
+        return True
+    if b'GGGG' in kmer:
+        return True
+    if b'TTTT' in kmer:
+        return True
+    if b'CCCC' in kmer:
+        return True
+
+
 def parse_fasta(fhand, ignore_softmask=True):
-    fasta_chunks = (x[1] for x in groupby(fhand, lambda line: line[0] == GT_CHAR))
+    fasta_chunks = (x[1] for x in groupby(fhand,
+                                          lambda line: line[0] == GT_CHAR))
     while True:
         try:
             header = list(next(fasta_chunks))[0][1:]
@@ -41,7 +50,7 @@ def n_in_seq(seq):
 
 
 def calculate_gc(seq):
-    count = collections.Counter(seq)
+    count = Counter(seq)
     g_count = count[G_CHAR]
     c_count = count[C_CHAR]
     gc = (g_count + c_count) / len(seq)
@@ -60,85 +69,7 @@ def gc_is_ok(kmer, min_gc, max_gc):
         else:
             result = False
         _GC_RESULT_CACHE[kmer] = result
-        #print(kmer, calculate_gc(kmer), result)
         return result
-
-
-def _rolling_window_serie(serie, window, length_, step):
-    '''It yields lists of items with a window number of elements'''
-    return (serie[i:i + window] for i in range(0, length_ - window + 1, step))
-
-
-def _rolling_window_iter(iterator, window, step):
-    '''It yields lists of items with a window number of elements giving
-     an iterator'''
-    items = []
-    for item in iterator:
-        if len(items) >= window:
-            yield items
-            items = items[step:]
-        items.append(item)
-    else:
-        if len(items) >= window:
-            yield items
-
-
-def rolling_window(iterator, window, step=1):
-    'It yields lists of items with a window number of elements'
-    try:
-        length_ = len(iterator)
-    except TypeError:
-        length_ = None
-    if length_ is None:
-        return _rolling_window_iter(iterator, window, step)
-    else:
-        return _rolling_window_serie(iterator, window, length_, step)
-
-
-def _calculate_rawscore(string):
-    'It returns a non-normalized dustscore'
-    triplet_counts = Counter()
-    for triplet in rolling_window(string, 3):
-        # It should do something with non ATCG, but we sacrifice purity for
-        # speed. Maybe we should reconsider this
-        triplet_counts[triplet.upper()] += 1
-
-    return sum(tc * (tc - 1) * 0.5 for tc in triplet_counts.values())
-
-
-def calculate_dust_score(seq, windowsize, windowstep):
-    '''It returns the dust score.
-    From: "A Fast and Symmetric DUST Implementation to Mask Low-Complexity DNA
-    Sequences"
-    doi:10.1089/cmb.2006.13.1028
-    and re-implemented from PRINSEQ
-    '''
-    length = len(seq)
-    if length == 3:
-        return 0
-    if length <= 5:
-        return None
-
-    dustscores = []
-    if length > windowsize:
-        windows = 0
-        for seq_in_win in rolling_window(seq, windowsize, windowstep):
-            score = _calculate_rawscore(seq_in_win)
-            dustscores.append(score / (windowsize - 2))
-            windows += 1
-        remaining_seq = seq[windows * windowstep:]
-    else:
-        remaining_seq = seq
-
-    if len(remaining_seq) > 5:
-        length = len(remaining_seq)
-        score = _calculate_rawscore(remaining_seq)
-        dustscore = score / (length - 3) * (windowsize - 2) / (length - 2)
-        dustscores.append(dustscore)
-
-    # max score should be 100 not 31
-    dustscore = sum(dustscores) / len(dustscores) * 100 / 31
-    return dustscore
 
 
 _DUST_CACHE = {}
@@ -178,46 +109,20 @@ class KmerLocationGenerator():
             for location in range(len(seq['seq']) - kmer_len + 1):
                 kmer = seq['seq'][location: location + kmer_len]
 
-                if not dust_score_is_ok(kmer, windowsize=dust_windowsize, windowstep=dust_windowstep, threshold=dust_threshold):
+                if not dust_score_is_ok(kmer, windowsize=dust_windowsize,
+                                        windowstep=dust_windowstep,
+                                        threshold=dust_threshold):
                     continue
 
                 if not gc_is_ok(kmer, min_gc=min_gc, max_gc=max_gc):
                     continue
 
-                if n_in_seq(kmer):
+                if blacklisted_seqs_in_seq(kmer):
                     continue
 
                 location = (seq["seq_id"], location)
                 kmer_counter[kmer] += 1
                 yield kmer, location
-
-
-def filter_kmers_by_seq_characteristics(kmers_to_check, filtering_criteria):
-    results = {"total": len(kmers_to_check)}
-
-    if 'gc' in filtering_criteria:
-        filter_funct = partial(kmer_filter_by_gc,
-                               min_gc=filtering_criteria['gc']['min_gc'],
-                               max_gc=filtering_criteria['gc']['max_gc'])
-        filtered_kmers = list(filter(filter_funct, kmers_to_check))
-        results["filtered_by_gc"] = len(kmers_to_check) - len(filtered_kmers)
-        total_num_kmers = len(filtered_kmers)
-
-    if 'seqs_blacklist' in filtering_criteria:
-        filter_funct = partial(kmer_filter_by_seq,
-                               seqs=filtering_criteria["seqs_blacklist"])
-        filtered_kmers = list(filter(filter_funct, filtered_kmers))
-        results["filtered_by_blacklisted_seq"] = total_num_kmers - len(filtered_kmers)
-        total_num_kmers = len(filtered_kmers)
-
-    if "default_dust_threshold" in filtering_criteria:
-        filter_funct = partial(kmer_filter_by_dust_score,
-                               dustscore=filtering_criteria["default_dust_threshold"])
-        filtered_kmers = list(filter(filter_funct, filtered_kmers))
-        results["filtered_by_dust_score"] = total_num_kmers - len(filtered_kmers)
-        total_num_kmers = len(filtered_kmers)
-
-    return filtered_kmers, results
 
 
 def no_name(genome_fhand, kmer_len, filtering_criteria):
@@ -229,6 +134,7 @@ def no_name(genome_fhand, kmer_len, filtering_criteria):
     print(kmer_generator.kmer_counter.most_common(10))
     print('hola')
     print(calculate_dust_score(b'CCCAAAAT', windowsize=64, windowstep=32))
+
 
 GENOME_FASTA = b'''>chrom1
 ATGGTAGGGATAGATAGAATAGATAGATAGATTAGGGCTTCATCATACT
