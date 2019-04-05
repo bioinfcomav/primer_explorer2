@@ -246,6 +246,8 @@ def filter_kmers_by_heterochromatin_stats(kmer_generator, criteria="euchromatin 
     if criteria == "euchromatin abundance":
         selected_kmers = kmer_generator.kmer_counters[False].most_common(
             max_num_kmers)
+        selected_kmers = get_selected_kmer_locations(
+            kmer_locations, selected_kmers[:max_num_kmers][0])
         return selected_kmers
     if criteria == "euchromatin ratio":
         ratios = calculate_euchromatin_ratios(kmer_generator)

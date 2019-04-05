@@ -66,16 +66,23 @@ class TestPrimer3Filter(unittest.TestCase):
 
 class TestSortByEuchromatinStats(unittest.TestCase):
 
-    # def test_sort_by_euchromatin_abundance(self):
-    #     heterochromatic_regions = GenomeRegions(
-    #         open('test_hetero_abundance.bed', 'rb'))
-    #     genome_fhand = open("test_kmers_abundance.fa", 'rb')
-    #     genome = parse_fasta(genome_fhand)
-    #     kmer_generator = KmerLocationGenerator(
-    #         genome, 8, heterochromatic_regions)
-    #     filtered_kmers = filter_kmers_by_heterochromatin_stats(
-    #         kmer_generator, criteria="euchromatin abundance", max_num_kmers=1)
-    #     assert (b'ATGGTAGG', 5) in filtered_kmers
+    def test_sort_by_euchromatin_abundance(self):
+        heterochromatic_regions = GenomeRegions(
+            open('test_hetero_abundance.bed', 'rb'))
+        genome_fhand = open("test_kmers_abundance.fa", 'rb')
+        genome = parse_fasta(genome_fhand)
+        kmer_generator = KmerLocationGenerator(
+            genome, 8, heterochromatic_regions)
+        filtered_kmer_locations = [KmerAndLocation(seq=b'GGTAGGAT', chrom_location=(b'test_kmers', 2), is_heterochromatic=True),
+                                   KmerAndLocation(seq=b'GGTAGGAT', chrom_location=(
+                                       b'test_kmers', 10), is_heterochromatic=False),
+                                   KmerAndLocation(seq=b'GGTAGGAT', chrom_location=(
+                                       b'test_kmers', 18), is_heterochromatic=True),
+                                   KmerAndLocation(seq=b'GGTAGGAT', chrom_location=(b'test_kmers', 26), is_heterochromatic=False)]
+        filtered_kmers = filter_kmers_by_heterochromatin_stats(
+            kmer_generator, criteria="euchromatin abundance", max_num_kmers=3)
+        for filtered_kmer in filtered_kmers:
+            assert filtered_kmer in filtered_kmer_locations
 
     def test_sort_by_euchromatin_ratio(self):
         filtered_kmer_locations = [KmerAndLocation(seq=b'TGGTAGGG', chrom_location=(b'test_kmers', 33), is_heterochromatic=False),
