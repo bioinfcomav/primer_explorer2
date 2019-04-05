@@ -1,10 +1,12 @@
 import io
+import operator
 from itertools import groupby
-from collections import Counter, namedtuple
-
+from collections import Counter, namedtuple, OrderedDict
 import gzip
+
 from dust_score import dust_score_is_ok
 from seq_filters import gc_is_ok, blacklisted_seqs_in_seq
+from primer3 import kmer_validated_by_primer3
 
 GT = '>'
 GT_BIN = b'>'
@@ -71,7 +73,6 @@ class KmerLocationGenerator:
         self._seqs = seqs
 
     def _region_is_heterochromatic(self, kmer_region):
-
         current_heterochromatic_region = self._current_heterochromatic_region
         # if current_heterochromatic_region is not None:
         #   print(current_heterochromatic_region.start)
@@ -91,7 +92,7 @@ class KmerLocationGenerator:
         if current_heterochromatic_region.overlaps(kmer_region):
             return True
         else:
-            if current_heterochromatic_region < kmer_region:
+            if current_heterochromatic_region.start < kmer_region.start:
                 self._current_heterochromatic_region = None
             return False
 
@@ -107,7 +108,6 @@ class KmerLocationGenerator:
 
         for seq_idx, seq in enumerate(seqs):
             for location in range(len(seq['seq']) - kmer_len + 1):
-
                 kmer = seq['seq'][location: location + kmer_len]
 
                 if not dust_score_is_ok(kmer, windowsize=dust_windowsize,
@@ -122,7 +122,7 @@ class KmerLocationGenerator:
                     continue
 
                 chrom = seq['seq_id']
-                #location_start = GenomeLocation(chrom, location)
+                # location_start = GenomeLocation(chrom, location)
                 location_start = (chrom, location)
                 kmer_region = GenomeRegion(chrom,
                                            location,
@@ -209,16 +209,77 @@ def test_get_first_that_complies():
         pass
 
 
-def generate_kmer_locations(genome_fhand, kmer_len, heterochromatic_regions):
+def pack_kmer_locations(kmer_locations):
+    packed_kmers = OrderedDict()
+    for kmer in kmer_locations:
+        if kmer[0] in packed_kmers:
+            packed_kmers[kmer[0]].append(kmer)
+        else:
+            packed_kmers[kmer[0]] = [kmer]
+    return packed_kmers
+
+
+def get_selected_kmer_locations(kmer_locations, selected_kmers):
+    return [kmer_location for kmer_location in kmer_locations if kmer_location[0] in selected_kmers]
+
+
+def calculate_euchromatin_ratios(kmer_generator):
+    euchromatin_abundance = {kmer: abundance for kmer,
+                             abundance in kmer_generator.kmer_counters[False].items()}
+    heterochromatin_abundance = {kmer: abundance for kmer,
+                                 abundance in kmer_generator.kmer_counters[True].items()}
+    euchromatin_ratio = {}
+    for kmer in euchromatin_abundance:
+        if kmer not in heterochromatin_abundance:
+            euchromatin_ratio[kmer] = 1
+        else:
+            euchromatin_ratio[kmer] = float(
+                euchromatin_abundance[kmer] /
+                (heterochromatin_abundance[kmer] +
+                 euchromatin_abundance[kmer]))
+    return euchromatin_ratio
+
+
+def filter_kmers_by_heterochromatin_stats(kmer_generator, criteria="euchromatin abundance", max_num_kmers=1000):
+    kmer_locations = kmer_generator.generate_kmer_locations()
+    kmer_locations = list(kmer_locations)
+    if criteria == "euchromatin abundance":
+        selected_kmers = kmer_generator.kmer_counters[False].most_common(
+            max_num_kmers)
+        return selected_kmers
+    if criteria == "euchromatin ratio":
+        ratios = calculate_euchromatin_ratios(kmer_generator)
+        sorted_kmers = [kmer[0] for kmer in sorted(
+            ratios.items(), key=operator.itemgetter(1), reverse=True)]
+        selected_kmers = get_selected_kmer_locations(
+            kmer_locations, sorted_kmers[:max_num_kmers])
+        return selected_kmers
+
+
+def generate_kmer_locations(genome_fhand, kmer_len, heterochromatic_regions, num_kmers_to_keep=100):
 
     genome = parse_fasta(genome_fhand)
     kmer_generator = KmerLocationGenerator(
         genome, kmer_len, heterochromatic_regions)
-    kmer_locations = kmer_generator.generate_kmer_locations()
-    print(len(list(kmer_locations)))
-    print(kmer_generator.kmer_counters[True].most_common(10))
-    print(kmer_generator.kmer_counters[False].most_common(10))
-    print('hola')
+    filtered_kmers = filter_kmers_by_heterochromatin_stats(kmer_generator)
+    # kmer_locations = kmer_generator.generate_kmer_locations()
+    # kmer_locations = list(kmer_locations)
+    # kmers = kmer_generator.kmer_counters[False].most_common(1000)
+    selected_kmers = []
+
+    for kmer in filtered_kmers:
+        if not kmer_validated_by_primer3(kmer[0].decode()):
+            continue
+        else:
+            selected_kmers.append(kmer[0])
+            if len(selected_kmers) == num_kmers_to_keep:
+                break
+
+    kmer_locations = get_selected_kmer_locations(
+        kmer_locations, selected_kmers)
+    packed_kmers = pack_kmer_locations(kmer_locations)
+
+    return packed_kmers
 
 
 GENOME_FASTA = b'''>chrom1
@@ -234,14 +295,12 @@ HETEROCHROMATIN_BED = '/home/jope/devel3/primer_experience/test_heterochromatin.
 
 
 if __name__ == '__main__':
-    test_genome_region()
-    test_get_first_that_complies()
     heterochromatic_regions = GenomeRegions(open(HETEROCHROMATIN_BED, 'rb'))
 
-    genome_fasta_fhand = io.BytesIO(GENOME_FASTA)
+    # genome_fasta_fhand = io.BytesIO(GENOME_FASTA)
     # genome_fasta_fhand = io.StringIO(GENOME_FASTA.decode())
-    genome_fasta_fhand = gzip.open(TOMATO_CHROM_FASTA_GZ, 'rb')
-    #genome_fasta_fhand = open('chrom1.500k.fasta', 'rb')
-    #genome_fasta_fhand = open('chrom1.100k.fasta', 'rb')
-    generate_kmer_locations(genome_fasta_fhand, kmer_len=8,
-                            heterochromatic_regions=heterochromatic_regions)
+    # genome_fasta_fhand = gzip.open(TOMATO_CHROM_FASTA_GZ, 'rb')
+    # genome_fasta_fhand = open('chrom1.500k.fasta', 'rb')
+    genome_fasta_fhand = open('chrom1.100k.fasta', 'rb')
+    kmer_locations = generate_kmer_locations(genome_fasta_fhand, kmer_len=8,
+                                             heterochromatic_regions=heterochromatic_regions)
