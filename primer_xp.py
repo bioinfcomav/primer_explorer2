@@ -1,7 +1,7 @@
 import io
 import operator
 from itertools import groupby
-from collections import Counter, namedtuple, OrderedDict
+from collections import Counter, namedtuple, OrderedDict, defaultdict
 import gzip
 
 from dust_score import dust_score_is_ok
@@ -240,33 +240,52 @@ def calculate_euchromatin_ratios(kmer_generator):
     return euchromatin_ratio
 
 
-def filter_kmers_by_heterochromatin_stats(kmer_generator, criteria="euchromatin abundance", max_num_kmers=1000):
+def get_top_kmers_by_euchromatin_abundance(kmer_locations, kmer_generator, max_num_kmers):
+    selected_kmers = kmer_generator.kmer_counters[False].most_common(
+        max_num_kmers)
+    selected_kmers = get_selected_kmer_locations(
+        kmer_locations, selected_kmers[:max_num_kmers][0])
+    return selected_kmers
+
+
+def get_top_kmers_by_minimum_abundance(kmer_locations, kmer_generator, min_abundance=1000, max_num_kmers=1000):
+    grouped_counters = defaultdict(int)
+    for _bool in [True, False]:
+        for kmer, counts in kmer_generator.kmer_counters[_bool].items():
+            grouped_counters[kmer] += counts
+    sorted_kmers = [kmer[0] for kmer in sorted(
+        grouped_counters.items(), key=operator.itemgetter(1), reverse=True) if kmer[1] >= min_abundance]
+    selected_kmers = get_selected_kmer_locations(
+        kmer_locations, sorted_kmers[:max_num_kmers])
+    return selected_kmers
+
+
+def get_top_kmers_by_euchromatin_ratio(kmer_locations, kmer_generator, max_num_kmers=1000, min_abundance=1000):
+    ratios = calculate_euchromatin_ratios(kmer_generator)
+    sorted_kmers = [kmer[0] for kmer in sorted(
+        ratios.items(), key=operator.itemgetter(1), reverse=True)]
+    selected_kmers = get_selected_kmer_locations(
+        kmer_locations, sorted_kmers[:max_num_kmers])
+    return selected_kmers
+
+
+def filter_kmers_by_heterochromatin_stats(kmer_generator, criterion="euchromatin abundance", max_num_kmers=1000, min_abundance=1000):
     kmer_locations = kmer_generator.generate_kmer_locations()
     kmer_locations = list(kmer_locations)
-    if criteria == "euchromatin abundance":
-        selected_kmers = kmer_generator.kmer_counters[False].most_common(
-            max_num_kmers)
-        selected_kmers = get_selected_kmer_locations(
-            kmer_locations, selected_kmers[:max_num_kmers][0])
-        return selected_kmers
-    if criteria == "euchromatin ratio":
-        ratios = calculate_euchromatin_ratios(kmer_generator)
-        sorted_kmers = [kmer[0] for kmer in sorted(
-            ratios.items(), key=operator.itemgetter(1), reverse=True)]
-        selected_kmers = get_selected_kmer_locations(
-            kmer_locations, sorted_kmers[:max_num_kmers])
-        return selected_kmers
+    if criterion == "euchromatin abundance":
+        return get_top_kmers_by_euchromatin_abundance(kmer_locations, kmer_generator, max_num_kmers)
+    if criterion == "euchromatin ratio":
+        return get_top_kmers_by_euchromatin_ratio(kmer_locations, kmer_generator, max_num_kmers)
+    if criterion == "minimun total abundance":
+        return get_top_kmers_by_minimum_abundance(kmer_locations, kmer_generator, max_num_kmers=max_num_kmers,
+                                                  min_abundance=min_abundance)
 
 
-def generate_kmer_locations(genome_fhand, kmer_len, heterochromatic_regions, num_kmers_to_keep=100):
-
+def generate_kmer_locations(genome_fhand, kmer_len, heterochromatic_regions):
     genome = parse_fasta(genome_fhand)
     kmer_generator = KmerLocationGenerator(
         genome, kmer_len, heterochromatic_regions)
     filtered_kmers = filter_kmers_by_heterochromatin_stats(kmer_generator)
-    # kmer_locations = kmer_generator.generate_kmer_locations()
-    # kmer_locations = list(kmer_locations)
-    # kmers = kmer_generator.kmer_counters[False].most_common(1000)
     selected_kmers = []
 
     for kmer in filtered_kmers:
