@@ -243,8 +243,10 @@ def calculate_euchromatin_ratios(kmer_generator):
 def get_top_kmers_by_euchromatin_abundance(kmer_locations, kmer_generator, max_num_kmers):
     selected_kmers = kmer_generator.kmer_counters[False].most_common(
         max_num_kmers)
+    print(selected_kmers)
     selected_kmers = get_selected_kmer_locations(
         kmer_locations, selected_kmers[:max_num_kmers][0])
+    print(selected_kmers)
     return selected_kmers
 
 
@@ -279,13 +281,19 @@ def filter_kmers_by_heterochromatin_stats(kmer_generator, criterion="euchromatin
     if criterion == "minimun total abundance":
         return get_top_kmers_by_minimum_abundance(kmer_locations, kmer_generator, max_num_kmers=max_num_kmers,
                                                   min_abundance=min_abundance)
+    if criterion == "total abundance":
+        return get_top_kmers_by_minimum_abundance(kmer_locations, kmer_generator, max_num_kmers=max_num_kmers,
+                                                  min_abundance=0)
+    raise RuntimeError(
+        "No available criterion for filtering: {}".format(criterion))
 
 
-def generate_kmer_locations(genome_fhand, kmer_len, heterochromatic_regions):
+def generate_kmer_locations(genome_fhand, kmer_len, heterochromatic_regions, num_kmers_to_keep=1000):
     genome = parse_fasta(genome_fhand)
     kmer_generator = KmerLocationGenerator(
         genome, kmer_len, heterochromatic_regions)
-    filtered_kmers = filter_kmers_by_heterochromatin_stats(kmer_generator)
+    filtered_kmers = filter_kmers_by_heterochromatin_stats(
+        kmer_generator, criterion="euchromatin abundance", max_num_kmers=num_kmers_to_keep)
     selected_kmers = []
 
     for kmer in filtered_kmers:
@@ -297,10 +305,28 @@ def generate_kmer_locations(genome_fhand, kmer_len, heterochromatic_regions):
                 break
 
     kmer_locations = get_selected_kmer_locations(
-        kmer_locations, selected_kmers)
+        filtered_kmers, selected_kmers)
     packed_kmers = pack_kmer_locations(kmer_locations)
 
     return packed_kmers
+
+
+def select_primers_combinations(kmer_locations, num_possible_combinations=10):
+
+    sorted_kmers = _sort_primers_by_abundance(
+        mandatory_kmer_locations, min_abundance=0)
+
+    compatibility_group = get_compatibility_group_for_index(
+        sorted_kmers, primer_3_filtering_criteria)
+    kmer_group1, kmer_group2 = divide_kmers_into_groups(compatibility_group)
+
+    for combination in primer_combinations:
+        valid_combination, explanations = filter_by_primer3(
+            combination, primer_3_filtering_criteria, "pair")
+        if valid_combination:
+            pcr_products = get_pcr_products(locations, max_length)
+            products_description = describe_primer_combination(
+                pcr_products, description_criteria)
 
 
 GENOME_FASTA = b'''>chrom1
@@ -322,6 +348,7 @@ if __name__ == '__main__':
     # genome_fasta_fhand = io.StringIO(GENOME_FASTA.decode())
     # genome_fasta_fhand = gzip.open(TOMATO_CHROM_FASTA_GZ, 'rb')
     # genome_fasta_fhand = open('chrom1.500k.fasta', 'rb')
-    genome_fasta_fhand = open('chrom1.100k.fasta', 'rb')
+    # genome_fasta_fhand = open('chrom1.100k.fasta', 'rb')
     kmer_locations = generate_kmer_locations(genome_fasta_fhand, kmer_len=8,
                                              heterochromatic_regions=heterochromatic_regions)
+    print(kmer_locations)
