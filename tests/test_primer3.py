@@ -1,7 +1,7 @@
 import unittest
 
-from primer3.primer3 import combinations_validated_by_primer3
-from combinations import get_compatible_groups_of_primers
+from primer_explorer.primer3.primer3 import combinations_validated_by_primer3
+from primer_explorer.combinations import get_compatible_groups_of_primers
 
 
 class TestPrimerCombinations(unittest.TestCase):

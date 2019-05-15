@@ -1,5 +1,5 @@
 import subprocess
-import config
+from primer_explorer import config
 from itertools import zip_longest
 
 

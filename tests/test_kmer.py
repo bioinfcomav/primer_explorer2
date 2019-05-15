@@ -2,13 +2,14 @@ import unittest
 from unittest.mock import Mock
 from pathlib import Path
 
-from regions import GenomeRegions
-from kmer import (KmerLocationGenerator, parse_fasta,
-                  filter_kmers_by_heterochromatin_stats,
-                  get_top_kmers_by_minimum_abundance, KmerAndLocation,
-                  filter_kmers_by_revcomp, get_first_that_complies)
+from primer_explorer.regions import GenomeRegions
+from primer_explorer.kmer import (KmerLocationGenerator, parse_fasta,
+                                  filter_kmers_by_heterochromatin_stats,
+                                  get_top_kmers_by_minimum_abundance,
+                                  KmerAndLocation, filter_kmers_by_revcomp,
+                                  get_first_that_complies)
 
-from primer3.primer3 import kmer_validated_by_primer3
+from primer_explorer.primer3.primer3 import kmer_validated_by_primer3
 
 TEST_DATA_PATHDIR = Path(__file__).parent.parent.joinpath('tests').joinpath('data')
 

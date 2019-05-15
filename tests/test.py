@@ -6,7 +6,7 @@ from primer_xp import (get_pcr_products,
                        annotate_length_viable_products,
                        annotate_products_by_euchromatin_region,
                        count_total_products)
-from kmer import KmerAndLocation
+from primer_explorer.kmer import KmerAndLocation
 
 
 class TestPcrProducts(unittest.TestCase):

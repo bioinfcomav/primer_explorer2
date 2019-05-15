@@ -1,5 +1,5 @@
 import unittest
-from regions import GenomeRegion
+from primer_explorer.regions import GenomeRegion
 
 
 class TestKmerGenerator(unittest.TestCase):

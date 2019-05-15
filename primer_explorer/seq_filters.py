@@ -1,4 +1,4 @@
-import config
+from primer_explorer import config
 from collections import Counter
 
 _GC_RESULT_CACHE = {}

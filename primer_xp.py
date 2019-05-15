@@ -1,12 +1,12 @@
 import pickle
 import sys
-import config
+from primer_explorer import config
 from itertools import combinations
 from collections import Counter, namedtuple, defaultdict
 
-from combinations import get_compatible_groups_of_primers
-from primer3.primer3 import reverse_complement
-from kmer import get_kmers
+from primer_explorer.combinations import get_compatible_groups_of_primers
+from primer_explorer.primer3.primer3 import reverse_complement
+from primer_explorer.kmer import get_kmers
 
 GT = '>'
 
@@ -27,15 +27,6 @@ def location_is_in_region(location, region):
 def regions_overlap(region1, region2):
     if region1.chrom != region2.chrom:
         return False
-
-
-def get_selected_kmer_locations(kmer_locations, selected_kmers):
-    selected_kmers_locations = []
-    for selected_kmer in selected_kmers:
-        for kmer_location in kmer_locations:
-            if kmer_location[0] == selected_kmer:
-                selected_kmers_locations.append(kmer_location)
-    return selected_kmers_locations
 
 
 def select_primers_combinations(kmers, num_possible_combinations=10):

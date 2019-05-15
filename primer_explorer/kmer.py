@@ -1,14 +1,13 @@
 import hashlib
 import pickle
 from itertools import groupby, combinations
-from collections import Counter, namedtuple, OrderedDict
+from collections import Counter, namedtuple, OrderedDict, defaultdict
 from operator import itemgetter
 
-from dust_score import dust_score_is_ok
-from seq_filters import gc_is_ok, blacklisted_seqs_in_seq
-from regions import GenomeRegion, GenomeRegions
-from primer3.primer3 import reverse_complement, kmer_validated_by_primer3
-from _collections import defaultdict
+from primer_explorer.dust_score import dust_score_is_ok
+from primer_explorer.seq_filters import gc_is_ok, blacklisted_seqs_in_seq
+from primer_explorer.regions import GenomeRegion, GenomeRegions
+from primer_explorer.primer3.primer3 import reverse_complement, kmer_validated_by_primer3
 
 GT_BIN = b'>'
 GT_CHAR = ord(GT_BIN)
@@ -26,8 +25,8 @@ def get_first_that_complies(iterator, condition):
 class KmerLocationGenerator:
 
     def __init__(self, seqs, kmer_len, heterochromatic_regions=None,
-                 min_gc=0.35, max_gc=0.75,
-                 dust_windowsize=64, dust_windowstep=32, dust_threshold=7):
+                 min_gc=0.35, max_gc=0.75, dust_windowsize=64,
+                 dust_windowstep=32, dust_threshold=7):
         self.kmer_len = kmer_len
         self.min_gc = min_gc
         self.max_gc = max_gc
@@ -50,7 +49,8 @@ class KmerLocationGenerator:
                 return kmer_region.start < region.start or kmer_region.overlaps(region)
 
             try:
-                current_heterochromatic_region = get_first_that_complies(self._heterochromatic_regions, heterochromatic_region_is_next)
+                current_heterochromatic_region = get_first_that_complies(self._heterochromatic_regions,
+                                                                         heterochromatic_region_is_next)
                 self._current_heterochromatic_region = current_heterochromatic_region
             except ValueError:
                 current_heterochromatic_region = None
@@ -131,8 +131,8 @@ def get_top_kmers_by_euchromatin_abundance(kmer_generator, max_num_kmers):
     kmer_locs = Counter()
     for kmer, num_locs in kmer_generator.kmer_counters[False].items():
         kmer_locs[kmer] = num_locs + get_revcomp_locs(kmer, kmer_generator)
-    sorted_by_abundance_kmers = [kmer[0] for kmer in kmer_locs.most_common()][:max_num_kmers]
-    return sorted_by_abundance_kmers
+    sorted_by_abundance_kmers = [kmer[0] for kmer in kmer_locs.most_common()]
+    return sorted_by_abundance_kmers[:max_num_kmers]
 
 
 def get_top_kmers_by_minimum_abundance(kmer_generator, min_abundance=1000, max_num_kmers=1000):
@@ -175,10 +175,12 @@ def filter_kmers_by_heterochromatin_stats(kmer_generator, max_num_kmers=1000,
         return get_top_kmers_by_euchromatin_abundance(kmer_generator,
                                                       max_num_kmers)
     if criterion == "euchromatin ratio":
-        return get_top_kmers_by_euchromatin_ratio(kmer_generator, max_num_kmers)
+        return get_top_kmers_by_euchromatin_ratio(kmer_generator,
+                                                  max_num_kmers)
     if criterion == "minimun total abundance":
         return get_top_kmers_by_minimum_abundance(kmer_generator,
-                                                  max_num_kmers=max_num_kmers, min_abundance=min_abundance)
+                                                  max_num_kmers=max_num_kmers,
+                                                  min_abundance=min_abundance)
     if criterion == "total abundance":
         return get_top_kmers_by_minimum_abundance(kmer_locations,
                                                   kmer_generator,
@@ -229,7 +231,8 @@ def pack_kmer_locations(kmer_locations):
     return packed_kmers
 
 
-def generate_kmer_locations(genome_fhand, kmer_len, heterochromatic_regions, num_kmers_to_keep=1000):
+def generate_kmer_locations(genome_fhand, kmer_len, heterochromatic_regions,
+                            num_kmers_to_keep=1000):
     genome = parse_fasta(genome_fhand)
     kmer_generator = KmerLocationGenerator(genome, kmer_len, heterochromatic_regions)
     kmer_locations = kmer_generator.generate_kmer_locations()
