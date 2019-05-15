@@ -1,9 +1,5 @@
-import config
-
-from functools import partial
-from itertools import zip_longest, combinations
-from primer3 import combinations_validated_by_primer3, reverse_complement
-
+from itertools import zip_longest
+from primer3.primer3 import combinations_validated_by_primer3, reverse_complement
 
 # def get_compatibility_group_for_index(sorted_primers_locations, seed_index=0):
 #     compatibility_group_primers = _get_first_cadidate_primer_from_index_seed(

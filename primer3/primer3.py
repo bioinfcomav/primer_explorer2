@@ -1,5 +1,6 @@
 import subprocess
 import config
+from itertools import zip_longest
 
 
 def reverse_complement(seq):

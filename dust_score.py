@@ -2,6 +2,7 @@ from collections import Counter
 
 _DUST_CACHE = {}
 
+
 def _rolling_window_serie(serie, window, length_, step):
     '''It yields lists of items with a window number of elements'''
     return (serie[i:i + window] for i in range(0, length_ - window + 1, step))

@@ -1,15 +1,15 @@
+import re
 from pathlib import Path
 
+CODE_DIR = Path(__file__).parent
+
 BLACKLISTED_SEQS = [b'N', b'AAAA', b'TTTT', b'CCCC', b'GGGG']
-KMERS_GENERATOR_FASTA = Path(
-    "/home/jope/devel3/primer_experience/test_kmers.fa")
-CACHE_DIR = Path("/home/jope/devel3/primer_experience/cache")
+KMERS_GENERATOR_FASTA = CODE_DIR / 'tests/data/kmers.fa'
+
+CACHE_DIR = CODE_DIR / ("cache")
 KMER_LENGTH = 8
 G_CHAR = ord(b'G')
 C_CHAR = ord(b'C')
-
-import re
-from collections import Counter
 
 LOW_GC = 0.5
 HIGH_GC = 0.75
@@ -22,8 +22,8 @@ DEFAULT_DUST_THRESHOLD = 7
 MAX_PCR_LENGTH = 1000
 MIN_PCR_VIABLE_LENGTH = 300
 
-PRIMER3_CONFIG_FPATH = "/home/jope/soft/primer3-2.3.7/src/primer3_config/"
-PRIMER3_CORE_FPATH = "/home/jope/soft/primer3-2.3.7/src/primer3_core"
+PRIMER3_CONFIG_FPATH = str(CODE_DIR / "primer3/primer3_config/") + '/'
+PRIMER3_CORE_FPATH = "primer3_core"
 
 COMPLEMENTARY_BASES = {'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C', '-': '-'}
 MELTING_TEMPERATURE_THRESHOLD = 0
@@ -39,7 +39,6 @@ LEFT_MSG = re.compile("PRIMER_LEFT_0_PROBLEMS=.+\n")
 RIGHT_MSG = re.compile("PRIMER_RIGHT_0_PROBLEMS=.+\n")
 THERMO_MSG = re.compile("PRIMER_THERMODYNAMIC_OLIGO_ALIGNMENT=.+\n")
 OK_PRIMER3_MSG = "considered 1, ok 1"
-
 
 KMER_PRIMER3_FILTERING_CRITERIA = {"primer3_config_fpath": PRIMER3_CONFIG_FPATH,
                                    "primer3_core_fpath": PRIMER3_CORE_FPATH,

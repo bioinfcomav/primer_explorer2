@@ -1,18 +1,15 @@
 import hashlib
-import io
 import operator
 import pickle
 import sys
 import config
 from itertools import groupby, combinations
 from collections import Counter, namedtuple, OrderedDict, defaultdict
-import gzip
 
-from combinations import get_compatible_groups_of_primers, divide_kmers_into_groups
+from combinations import get_compatible_groups_of_primers
 from dust_score import dust_score_is_ok
-from primer3 import kmer_validated_by_primer3, reverse_complement
+from primer3.primer3 import kmer_validated_by_primer3, reverse_complement
 from seq_filters import gc_is_ok, blacklisted_seqs_in_seq
-
 
 GT = '>'
 GT_BIN = b'>'
@@ -59,6 +56,7 @@ def regions_overlap(region1, region2):
 
 
 class KmerLocationGenerator:
+
     def __init__(self, seqs, kmer_len, heterochromatic_regions=None,
                  min_gc=0.35, max_gc=0.75,
                  dust_windowsize=64, dust_windowstep=32, dust_threshold=7):
@@ -79,8 +77,10 @@ class KmerLocationGenerator:
     def _region_is_heterochromatic(self, kmer_region):
         current_heterochromatic_region = self._current_heterochromatic_region
         if current_heterochromatic_region is None:
+
             def heterochromatic_region_is_next(region):
                 return kmer_region.start < region.start or kmer_region.overlaps(region)
+
             try:
                 current_heterochromatic_region = get_first_that_complies(self._heterochromatic_regions, heterochromatic_region_is_next)
                 self._current_heterochromatic_region = current_heterochromatic_region
@@ -135,6 +135,7 @@ class KmerLocationGenerator:
 
 
 class GenomeRegions:
+
     def __init__(self, bed_fhand):
         self._bed_fhand = bed_fhand
 
@@ -150,6 +151,7 @@ class GenomeRegions:
 
 
 class GenomeRegion:
+
     def __init__(self, chrom, start, stop):
         self.chrom = chrom
         self.start = start
@@ -435,7 +437,6 @@ def get_kmers(genome_fpath, heterochromatic_regions_fpath, kmer_len, cache_dir):
 
 TOMATO_CHROM_FASTA_GZ = '/home/jope/devel3/primer_explorer_old_version/genome/S_lycopersicum_chromosomes.3.00.chrom1.fasta.gz'
 HETEROCHROMATIN_BED = '/home/jope/devel3/primer_experience/test_heterochromatin.bed'
-
 
 if __name__ == '__main__':
     genome_fpath = "/home/jope/genomes/SL3.0/S_lycopersicum_chromosomes.3.00.fa"

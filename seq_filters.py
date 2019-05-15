@@ -3,6 +3,7 @@ from collections import Counter
 
 _GC_RESULT_CACHE = {}
 
+
 def blacklisted_seqs_in_seq(kmer):
     if b'N' in kmer:
         return True
