@@ -19,12 +19,32 @@ class TestKmerGenerator(unittest.TestCase):
     def test_generate_kmers(self):
         with open(TEST_DATA_PATHDIR / 'heterochromatin_prueba.bed', 'rb') as regions_fhand, \
                 open(TEST_DATA_PATHDIR / 'kmers.fa', 'rb') as genome_fhand:
+            heterochromatic_regions = list(GenomeRegions(regions_fhand))
+            genome = parse_fasta(genome_fhand)
+            kmer_generator = KmerLocationGenerator(genome, 8, heterochromatic_regions)
+            list(kmer_generator.generate_kmer_locations())
+            assert len(kmer_generator.kmer_counters[True].most_common(60)) == 18
+
+            assert len(kmer_generator.kmer_counters[False].most_common(60)) == 60
+
+        with open(TEST_DATA_PATHDIR / 'small_kmers.bed', 'rb') as regions_fhand, \
+                open(TEST_DATA_PATHDIR / 'small_kmers.fasta', 'rb') as genome_fhand:
             heterochromatic_regions = GenomeRegions(regions_fhand)
             genome = parse_fasta(genome_fhand)
             kmer_generator = KmerLocationGenerator(genome, 8, heterochromatic_regions)
-            kmer_locations = kmer_generator.generate_kmer_locations()
-            kmer_locations = list(kmer_locations)
-            assert len(kmer_generator.kmer_counters[True].most_common(60)) == 18
+            locations = list(kmer_generator.generate_kmer_locations())
+            # seq1
+            assert not locations[0].is_heterochromatic
+            assert not locations[1].is_heterochromatic
+            assert locations[2].is_heterochromatic
+            assert locations[3].is_heterochromatic
+            assert locations[9].is_heterochromatic
+            assert not locations[10].is_heterochromatic
+            # seq2
+            assert not locations[26].is_heterochromatic
+            assert locations[27].is_heterochromatic
+            assert locations[34].is_heterochromatic
+            assert not locations[35].is_heterochromatic
 
     def test_get_first_that_complies(self):
 

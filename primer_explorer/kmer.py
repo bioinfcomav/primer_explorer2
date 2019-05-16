@@ -46,7 +46,7 @@ class KmerLocationGenerator:
         if current_heterochromatic_region is None:
 
             def heterochromatic_region_is_next(region):
-                return kmer_region.start < region.start or kmer_region.overlaps(region)
+                return kmer_region < region or kmer_region.overlaps(region)
 
             try:
                 current_heterochromatic_region = get_first_that_complies(self._heterochromatic_regions,
@@ -60,7 +60,7 @@ class KmerLocationGenerator:
         if current_heterochromatic_region.overlaps(kmer_region):
             return True
         else:
-            if current_heterochromatic_region.start < kmer_region.start or current_heterochromatic_region.chrom != kmer_region.chrom:
+            if current_heterochromatic_region < kmer_region:
                 self._current_heterochromatic_region = None
             return False
 
@@ -237,6 +237,8 @@ def generate_kmer_locations(genome_fhand, kmer_len, heterochromatic_regions,
     kmer_generator = KmerLocationGenerator(genome, kmer_len, heterochromatic_regions)
     kmer_locations = kmer_generator.generate_kmer_locations()
     kmer_locations = list(kmer_locations)
+#     kmers = [k for k in kmer_generator.kmer_counters[False].keys()]
+#     return kmers, pack_kmer_locations(kmer_locations)
     filt_kmers_by_het_stats = filter_kmers_by_heterochromatin_stats(kmer_generator,
                                                                     criterion="euchromatin abundance",
                                                                     max_num_kmers=num_kmers_to_keep)

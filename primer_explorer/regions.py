@@ -22,6 +22,11 @@ class GenomeRegion:
         self.stop = stop
 
     def __lt__(self, region2):
+        if (self.chrom < region2.chrom or (self.chrom == region2.chrom and
+                                           self.start < region2.start)):
+            return True
+        return False
+
         if self.chrom != region2.chrom:
             return True
         return self.start < region2.start

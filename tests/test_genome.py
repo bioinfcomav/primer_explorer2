@@ -5,11 +5,13 @@ from primer_explorer.regions import GenomeRegion
 class TestKmerGenerator(unittest.TestCase):
 
     def test_genome_region(self):
-        region1 = GenomeRegion('chrom1', 1, 2)
-        region2 = GenomeRegion('chrom2', 1, 2)
+        region1 = GenomeRegion('chrom1', 5, 10)
+        region2 = GenomeRegion('chrom2', 5, 10)
         assert region1 < region2
 
-        assert region1 < GenomeRegion('chrom1', 2, 3)
+        assert region1 < GenomeRegion('chrom1', 6, 13)
+        assert not region1 < GenomeRegion('chrom1', 2, 3)
+        assert not region1 < GenomeRegion('chrom0', 12, 3)
 
         assert not GenomeRegion('c', 0, 2).overlaps(GenomeRegion('c', 2, 4))
         assert not GenomeRegion('c', 2, 4).overlaps(GenomeRegion('c', 0, 2))
