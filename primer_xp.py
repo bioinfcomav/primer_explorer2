@@ -3,7 +3,7 @@ import sys
 
 from primer_explorer import config
 from primer_explorer.kmer import get_kmers
-from primer_explorer.pcr import (select_primers_combinations, get_pcr_products, \
+from primer_explorer.pcr import (select_primers_combinations, get_pcr_products,
                                  annotate_products)
 
 TOMATO_CHROM_FASTA_GZ = '/home/jope/devel3/primer_explorer_old_version/genome/S_lycopersicum_chromosomes.3.00.chrom1.fasta.gz'
