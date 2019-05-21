@@ -2,19 +2,6 @@ from itertools import zip_longest
 from primer_explorer.primer3.primer3 import (combinations_validated_by_primer3,
                                              reverse_complement)
 
-# def get_compatibility_group_for_index(sorted_primers_locations, seed_index=0):
-#     compatibility_group_primers = _get_first_cadidate_primer_from_index_seed(
-#         seed_index, sorted_primers_locations.keys())
-#     for primer in sorted_primers_locations.keys():
-#         if _primer_is_compatibility_group_seed(primer, compatibility_group_primers):
-#             continue
-#         if not combination_validated_by_primer3(compatibility_group_primers, primer):
-#             continue
-#         compatibility_group_primers.append(primer)
-#     compatibility_group_primers = filter_primers_by_revcomp(
-#         compatibility_group_primers)
-#     return compatibility_group_primers
-
 
 def get_compatible_groups_of_primers(primers, seed_index=0, num_compatible_groups=10):
     compatibility_primers_groups = []

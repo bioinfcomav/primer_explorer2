@@ -1,6 +1,6 @@
 import pickle
 import sys
-
+from collections import namedtuple
 from primer_explorer import config
 from primer_explorer.kmer import get_kmers
 from primer_explorer.pcr import (select_primers_combinations, get_pcr_products,
@@ -9,7 +9,10 @@ from primer_explorer.pcr import (select_primers_combinations, get_pcr_products,
 TOMATO_CHROM_FASTA_GZ = '/home/jope/devel3/primer_explorer_old_version/genome/S_lycopersicum_chromosomes.3.00.chrom1.fasta.gz'
 HETEROCHROMATIN_BED = '/home/jope/devel3/primer_experience/test_heterochromatin.bed'
 
-if __name__ == '__main__':
+PrimerAndLocation = namedtuple('PrimerAndLocation', ('strand', 'seq', 'chrom_location', 'is_heterochromatic'))
+
+
+def main():
     genome_fpath = "/home/jope/genomes/SL3.0/S_lycopersicum_chromosomes.3.00.fa"
     heterochromatic_regions_fpath = "test_heterochromatin.bed"
     kmer_len = 8
@@ -42,3 +45,7 @@ if __name__ == '__main__':
     pcr_annotation_fhand = open(config.PCR_ANNOTATION, "wb")
     pickle.dump(product_results, pcr_products_fhand, pickle.HIGHEST_PROTOCOL)
     pickle.dump(annotation_results, pcr_annotation_fhand, pickle.HIGHEST_PROTOCOL)
+
+
+if __name__ == '__main__':
+    main()

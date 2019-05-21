@@ -4,10 +4,7 @@ from pathlib import Path
 CODE_DIR = Path(__file__).parent
 
 BLACKLISTED_SEQS = [b'N', b'AAAA', b'TTTT', b'CCCC', b'GGGG']
-KMERS_GENERATOR_FASTA = CODE_DIR / 'tests/data/kmers.fa'
 
-CACHE_DIR = CODE_DIR / ("cache")
-KMER_LENGTH = 8
 G_CHAR = ord(b'G')
 C_CHAR = ord(b'C')
 
@@ -19,7 +16,8 @@ HIGH_GC = 0.75
 DUST_WINDOWSIZE = 64
 DUST_WINDOWSTEP = 32
 DEFAULT_DUST_THRESHOLD = 7
-MAX_PCR_LENGTH = 1000
+
+MAX_PCR_PRODUCT_LENGTH = 1000
 MIN_PCR_VIABLE_LENGTH = 300
 
 PRIMER3_CONFIG_FPATH = str(CODE_DIR / "primer3/primer3_config/") + '/'
@@ -54,7 +52,3 @@ PAIR_PRIMER3_FILTERING_CRITERIA = {"primer3_config_fpath": PRIMER3_CONFIG_FPATH,
                                    "max_complementary_any": MAX_COMP_ANY,
                                    "max_complementary_factor": MAX_COMP_ANY_FACTOR,
                                    "max_diff_temp": 40}
-MAX_PCR_PRODUCT_LENGTH = 1000
-
-PCR_PRODUCTS_PICKLE = "pcr_products_results.pickle"
-PCR_ANNOTATION = "pcr_annotation.pickle"
