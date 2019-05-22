@@ -3,7 +3,8 @@ import argparse
 import pickle
 import itertools
 
-from primer_explorer.plot import draw_histograms, IntCounter
+from primer_explorer.plot import draw_histograms
+from primer_explorer.stats import IntCounter
 
 BINS = 10
 
