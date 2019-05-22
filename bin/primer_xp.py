@@ -17,7 +17,7 @@ def parse_arguments():
     parser.add_argument('-s', '--kmer_size', help='Size of the kmers to look for',
                         type=int, default=8)
     parser.add_argument('-c', '--cache_dir', help='cache dir',
-                        type=int, default='./cache')
+                        default='./cache')
     parser.add_argument('-o', '--pcr_products', required=True,
                         help='Path to write pcr_products result',
                         type=argparse.FileType('wb'))
