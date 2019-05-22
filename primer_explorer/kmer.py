@@ -33,7 +33,13 @@ class KmerLocationGenerator:
         self.dust_windowstep = dust_windowstep
         self.dust_windowsize = dust_windowsize
         self.dust_threshold = dust_threshold
+
+        # as we only need it to make checks with in, the speed improvement is
+        # using a dict instead of a list is huge
+        if kmers_to_keep is not None:
+            kmers_to_keep = {kmer: '' for kmer in kmers_to_keep}
         self.kmer_to_keep = kmers_to_keep
+
         self.kmer_counters = {True: Counter(), False: Counter()}
 
         if heterochromatic_regions is None:
