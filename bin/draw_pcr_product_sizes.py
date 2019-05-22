@@ -1,12 +1,9 @@
+#!/usr/bin/env python
 import argparse
-import os
 import pickle
-import matplotlib.pyplot as plt
 import itertools
 
-
 from primer_explorer.plot import draw_histograms, IntCounter
-
 
 BINS = 10
 
@@ -35,7 +32,7 @@ def parse_arguments():
     return parser
 
 
-def _get_args():
+def get_args():
     parser = parse_arguments()
     args = parser.parse_args()
     location_fhand = args.locations
@@ -49,28 +46,8 @@ def _get_args():
             'primers_fhand': primers_fhand}
 
 
-def create_histogram(pair, lengths, bins, prefix=None):
-    title = "PCR length products for pair {}, {}".format(pair[0], pair[1])
-    x_label = "Product_size"
-    y_label = "Number of products"
-    if prefix is None:
-        prefix = './'
-    fpath = prefix + '{}-{}_product_length_distribution.svg'.format(*pair)
-
-    draw_histogram(fpath, title, x_label, y_label, bins, lengths)
-
-
-def draw_histogram(fpath, title, x_label, y_label, bins, values):
-    plt.figure()
-    plt.hist(values, bins=bins)
-    plt.title(title)
-    plt.xlabel(x_label)
-    plt.ylabel(y_label)
-    plt.savefig(fpath)
-
-
 def main():
-    arguments = _get_args()
+    arguments = get_args()
     products_fhand = arguments["locations"]
     output_fhand = arguments['output']
     primers_fhand = arguments['primers_fhand']
@@ -80,7 +57,7 @@ def main():
         selected_primers = None
 
     num_sets_to_represent = arguments['num_sets']
-    bins = arguments['num_bin']
+    num_bins = arguments['num_bin']
 
     pcr_products = pickle.load(products_fhand)
 
@@ -95,10 +72,7 @@ def main():
 
     draw_histograms(counters, output_fhand, xlabel="Product_size",
                     ylabel="Number of products", titles=titles,
-                    plots_per_chart=1, kind='bar')
-
-    # for pair, lengths in stats.items():
-    #     create_histogram(pair, lengths, bins, prefix)
+                    plots_per_chart=1, kind='bar', num_bins=num_bins)
 
 
 def get_stats(pcr_products, selected_primers, num_sets_to_represent):

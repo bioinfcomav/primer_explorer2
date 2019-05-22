@@ -1,4 +1,3 @@
-
 from os.path import splitext
 from collections import Counter
 
@@ -46,10 +45,12 @@ def get_fig_and_canvas(num_rows=1, num_cols=1, figsize=None):
 
 
 class HistogramPlotter(object):
+
     def __init__(self, counters, plots_per_chart=1, kind=LINE, num_cols=1,
                  xlabel=None, ylabel=None, ylog_scale=False, ylimits=None,
                  distrib_labels=None, titles=None, xmax=None, xmin=None,
-                 linestyles=None, figsize=None, xtickslabel_rotation=None):
+                 linestyles=None, figsize=None, xtickslabel_rotation=None,
+                 num_bins=None):
         if plots_per_chart > 1 and kind == BAR:
             error_msg = 'if kind is BAR only one plot per chart is allowed'
             raise ValueError(error_msg)
@@ -60,6 +61,7 @@ class HistogramPlotter(object):
         self.ylog_scale = ylog_scale
         self.xlabel = xlabel
         self.ylabel = ylabel
+        self.num_bins = num_bins
         self.num_plots, self.num_rows = self._get_plot_dimensions()
         fig, canvas = get_fig_and_canvas(num_rows=self.num_rows,
                                          num_cols=self.num_cols,
@@ -68,7 +70,7 @@ class HistogramPlotter(object):
         self.canvas = canvas
         axes = self._draw_plot(distrib_labels=distrib_labels, ylimits=ylimits,
                                titles=titles, xmax=xmax, xmin=xmin,
-                               linestyles=linestyles,
+                               linestyles=linestyles, num_bins=num_bins,
                                xtickslabel_rotation=xtickslabel_rotation)
         self.axes = axes
 
@@ -89,10 +91,12 @@ class HistogramPlotter(object):
 
     def _draw_histogram_in_axe(self, counter, axe, xmax=None, xmin=None,
                                title=None, distrib_label=None, linestyle=None,
-                               ylimits=None, xtickslabel_rotation=None):
+                               ylimits=None, xtickslabel_rotation=None,
+                               num_bins=None):
 
         try:
-            distrib = counter.calculate_distribution(max_=xmax, min_=xmin)
+            distrib = counter.calculate_distribution(bins=num_bins, max_=xmax,
+                                                     min_=xmin)
         except RuntimeError:
             axe.set_title(title + ' (NO DATA)')
             return axe
@@ -177,14 +181,14 @@ class HistogramPlotter(object):
 
     def _draw_plot(self, distrib_labels=None, titles=None, xmax=None,
                    xmin=None, linestyles=None, ylimits=None,
-                   xtickslabel_rotation=None):
+                   xtickslabel_rotation=None, num_bins=None):
         counter_index = 0
         axes = []
         for plot_num in range(1, self.num_plots + 1):
             # print num_rows, num_cols, plot_num
             axe = self.figure.add_subplot(self.num_rows, self.num_cols,
                                           plot_num)
-            for i in range(self.plots_per_chart):
+            for _ in range(self.plots_per_chart):
                 try:
                     counter = self.counters[counter_index]
                     if distrib_labels is None:
@@ -202,7 +206,7 @@ class HistogramPlotter(object):
                                             xmax=xmax, title=title,
                                             distrib_label=distrib_label,
                                             linestyle=linestyle,
-                                            ylimits=ylimits,
+                                            ylimits=ylimits, num_bins=num_bins,
                                             xtickslabel_rotation=xtickslabel_rotation)
                 counter_index += 1
 
@@ -215,28 +219,29 @@ class HistogramPlotter(object):
 
 def draw_histogram_in_fhand(counter, fhand, title=None, xlabel=None, xmin=None,
                             xmax=None, ylabel=None, kind=BAR, ylimits=None,
-                            ylog_scale=False, figsize=None,
+                            ylog_scale=False, figsize=None, num_bins=None,
                             xtickslabel_rotation=None):
     'It draws an histogram and if the fhand is given it saves it'
     plot_hist = HistogramPlotter([counter], xlabel=xlabel, ylabel=ylabel,
                                  xmax=xmax, xmin=xmin, titles=[title],
                                  ylimits=ylimits, kind=kind, figsize=figsize,
                                  xtickslabel_rotation=xtickslabel_rotation,
-                                 ylog_scale=ylog_scale)
+                                 ylog_scale=ylog_scale, num_bins=num_bins)
     plot_hist.write_figure(fhand)
 
 
 def draw_histograms(counters, fhand, distrib_labels=None, num_cols=2,
                     plots_per_chart=3, xlabel=None, ylabel=None, titles=None,
                     kind=LINE, xmax=None, xmin=None, linestyles=None,
-                    ylimits=None, ylog_scale=False):
+                    ylimits=None, ylog_scale=False, num_bins=None):
 
     plot_hist = HistogramPlotter(counters, xlabel=xlabel, ylabel=ylabel,
                                  xmax=xmax, xmin=xmin, titles=titles,
                                  distrib_labels=distrib_labels, kind=kind,
                                  linestyles=linestyles, ylimits=ylimits,
                                  num_cols=num_cols, ylog_scale=ylog_scale,
-                                 plots_per_chart=plots_per_chart)
+                                 plots_per_chart=plots_per_chart,
+                                 num_bins=num_bins)
     plot_hist.write_figure(fhand)
 
 
@@ -459,10 +464,11 @@ class IntCounter(Counter):
         'It writes some basic stats of the values'
         if self.count != 0:
             labels = self.labels
-            # now we write some basic stats
 
-            def format_num(x): return '{:,d}'.format(x) if isinstance(x, int) \
-                else '%.2f' % x
+            # now we write some basic stats
+            def format_num(x):
+                return '{:,d}'.format(x) if isinstance(x, int) else '%.2f' % x
+
             text = '{}: {}\n'.format(labels['minimum'], format_num(self.min))
             text += '{}: {}\n'.format(labels['maximum'], format_num(self.max))
             text += '{}: {}\n'.format(labels['average'],
