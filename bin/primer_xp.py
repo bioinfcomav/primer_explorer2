@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import pickle
 import argparse
+from pathlib import Path
 
 from primer_explorer.kmer import get_kmers
 from primer_explorer.pcr import (select_primers_combinations, get_pcr_products,
@@ -9,13 +10,14 @@ from primer_explorer.pcr import (select_primers_combinations, get_pcr_products,
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Look for working primers")
-    parser.add_argument('-f', '--genome_path', help='Path to the genome in fasta format',
+    parser.add_argument('-f', '--genome_path',
+                        help='Path to the genome in fasta format',
                         type=argparse.FileType('rb'), required=True)
     parser.add_argument('-r', '--heterochromatin_regions',
                         help='Path to bed file with heterochromatin',
                         type=argparse.FileType('rb'))
-    parser.add_argument('-s', '--kmer_size', help='Size of the kmers to look for',
-                        type=int, default=8)
+    parser.add_argument('-s', '--kmer_size', type=int, default=8,
+                        help='Size of the kmers to look for')
     parser.add_argument('-c', '--cache_dir', help='cache dir',
                         default='./cache')
     parser.add_argument('-o', '--pcr_products', required=True,
@@ -49,11 +51,13 @@ def main():
     genome_fpath = args['genome_fhand'].name
     heterochromatic_regions_fpath = args['regions_fhand'].name
     kmer_len = args['kmer_size']
-    cache_dir = args['cache_dir']
+    cache_dir = Path(args['cache_dir'])
     pcr_products_fhand = args['products_fhand']
     pcr_annotation_fhand = args['annotations_fhand']
 
-    kmers, kmers_locations = get_kmers(genome_fpath, heterochromatic_regions_fpath, kmer_len, cache_dir)
+    kmers, kmers_locations = get_kmers(genome_fpath,
+                                       heterochromatic_regions_fpath,
+                                       kmer_len, cache_dir)
 
     primer_combinations = select_primers_combinations(kmers)
     product_results = []
@@ -66,7 +70,8 @@ def main():
         annotation_results.append(annotation)
 
     pickle.dump(product_results, pcr_products_fhand, pickle.HIGHEST_PROTOCOL)
-    pickle.dump(annotation_results, pcr_annotation_fhand, pickle.HIGHEST_PROTOCOL)
+    pickle.dump(annotation_results, pcr_annotation_fhand,
+                pickle.HIGHEST_PROTOCOL)
 
 
 if __name__ == '__main__':
