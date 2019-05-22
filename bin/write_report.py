@@ -14,7 +14,7 @@ def parse_arguments():
                         type=argparse.FileType('rb'))
     parser.add_argument('-o', '--output', required=True,
                         help='Path to write the report',
-                        type=argparse.FileType('wb'))
+                        type=argparse.FileType('w'))
     return parser
 
 
@@ -22,7 +22,7 @@ def get_args():
     parser = parse_arguments()
     args = parser.parse_args()
     products_fhand = args.pcr_products
-    report_fhand = args.report_fhand
+    report_fhand = args.output
 
     return {'products_fhand': products_fhand, 'report_fhand': report_fhand}
 

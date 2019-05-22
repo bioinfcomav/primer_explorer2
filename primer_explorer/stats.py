@@ -326,8 +326,8 @@ def write_primer_pair_stats(primer_pair, count, report_fhand):
     report_fhand.write("Number of euchromatic effective products:\t{}\n".format(str(count["euchromatin_products"])))
     report_fhand.write("Number of heterochromatic effective products:\t{}\n".format(str(count["heterochromatin_products"])))
     report_fhand.write("Number of mixed effective products:\t{}\n".format(str(count["mixed_products"])))
-    report_fhand.write("Ratio euchromatin (without mixed):\t{}\n".format(str(count["euchromatin_products"] / (count["viable_products"] - count["mixed_products"]))))
-    report_fhand.write("Ratio heterochromatin (without mixed):\t{}\n".format(str(count["heterochromatin_products"] / (count["viable_products"] - count["mixed_products"]))))
+    report_fhand.write("Ratio euchromatin (without mixed):\t{:.2f}\n".format(count["euchromatin_products"] / (count["viable_products"] - count["mixed_products"])))
+    report_fhand.write("Ratio heterochromatin (without mixed):\t{:.2f}\n".format(count["heterochromatin_products"] / (count["viable_products"] - count["mixed_products"])))
     report_fhand.flush()
 
 
