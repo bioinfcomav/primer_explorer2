@@ -26,13 +26,14 @@ class KmerLocationGenerator:
 
     def __init__(self, seqs, kmer_len, heterochromatic_regions=None,
                  min_gc=0.35, max_gc=0.75, dust_windowsize=64,
-                 dust_windowstep=32, dust_threshold=7):
+                 dust_windowstep=32, dust_threshold=7, kmers_to_keep=None):
         self.kmer_len = kmer_len
         self.min_gc = min_gc
         self.max_gc = max_gc
         self.dust_windowstep = dust_windowstep
         self.dust_windowsize = dust_windowsize
         self.dust_threshold = dust_threshold
+        self.kmer_to_keep = kmers_to_keep
         self.kmer_counters = {True: Counter(), False: Counter()}
 
         if heterochromatic_regions is None:
@@ -72,12 +73,14 @@ class KmerLocationGenerator:
         dust_windowsize = self.dust_windowsize
         dust_threshold = self.dust_threshold
         kmer_counters = self.kmer_counters
+        kmers_to_keep = self.kmer_to_keep
         seqs = self._seqs
 
         for seq in seqs:
             for location in range(len(seq['seq']) - kmer_len + 1):
                 kmer = seq['seq'][location: location + kmer_len]
-
+                if kmers_to_keep and kmer not in kmers_to_keep:
+                    continue
                 if not dust_score_is_ok(kmer, windowsize=dust_windowsize,
                                         windowstep=dust_windowstep,
                                         threshold=dust_threshold):
@@ -170,7 +173,8 @@ def get_top_kmers_by_euchromatin_ratio(kmer_generator, max_num_kmers=1000, min_a
 
 def filter_kmers_by_heterochromatin_stats(kmer_generator, max_num_kmers=1000,
                                           criterion="euchromatin abundance",
-                                          min_abundance=1000):
+                                          min_abundance=1000,
+                                          kmer_locations=None):
     if criterion == "euchromatin abundance":
         return get_top_kmers_by_euchromatin_abundance(kmer_generator,
                                                       max_num_kmers)
@@ -232,23 +236,26 @@ def pack_kmer_locations(kmer_locations):
 
 
 def generate_kmer_locations(genome_fhand, kmer_len, heterochromatic_regions,
-                            num_kmers_to_keep=1000):
+                            num_kmers_to_keep=1000, kmers_to_keep=None):
     genome = parse_fasta(genome_fhand)
-    kmer_generator = KmerLocationGenerator(genome, kmer_len, heterochromatic_regions)
+    kmer_generator = KmerLocationGenerator(genome, kmer_len, heterochromatic_regions,
+                                           kmers_to_keep=kmers_to_keep)
     kmer_locations = kmer_generator.generate_kmer_locations()
     kmer_locations = list(kmer_locations)
 #     kmers = [k for k in kmer_generator.kmer_counters[False].keys()]
 #     return kmers, pack_kmer_locations(kmer_locations)
     filt_kmers_by_het_stats = filter_kmers_by_heterochromatin_stats(kmer_generator,
                                                                     criterion="euchromatin abundance",
-                                                                    max_num_kmers=num_kmers_to_keep)
+                                                                    max_num_kmers=num_kmers_to_keep,
+                                                                    kmer_locations=kmer_locations)
     filt_kmers_by_primer3 = filter_kmers_by_primer3(filt_kmers_by_het_stats, num_kmers_to_keep)
     filtered_kmers = filter_kmers_by_revcomp(filt_kmers_by_primer3, kmer_generator.kmer_counters)
     packed_kmers = pack_kmer_locations(kmer_locations)
     return filtered_kmers, packed_kmers
 
 
-def get_kmers(genome_fpath, heterochromatic_regions_fpath, kmer_len, cache_dir):
+def get_kmers(genome_fpath, heterochromatic_regions_fpath, kmer_len, cache_dir,
+              kmers_to_keep=None):
     key = str(genome_fpath)
     key += str(heterochromatic_regions_fpath)
     key += str(kmer_len)
@@ -258,16 +265,33 @@ def get_kmers(genome_fpath, heterochromatic_regions_fpath, kmer_len, cache_dir):
         kmers, kmers_locations = pickle.load(cache_fpath.open('rb'))
         return kmers, kmers_locations
     else:
-        cache_fhand = open(str(cache_fpath), "wb")
+
         regions_fhand = open(heterochromatic_regions_fpath, 'rb')
         heterochromatic_regions = GenomeRegions(regions_fhand)
         genome_fhand = open(genome_fpath, 'rb')
         kmers, kmers_locations = generate_kmer_locations(genome_fhand,
                                                          kmer_len=kmer_len,
-                                                         heterochromatic_regions=heterochromatic_regions)
+                                                         heterochromatic_regions=heterochromatic_regions,
+                                                         kmers_to_keep=kmers_to_keep)
+        cache_fhand = open(str(cache_fpath), "wb")
         pickle.dump((kmers, kmers_locations), cache_fhand, pickle.HIGHEST_PROTOCOL)
         cache_fhand.close()
         regions_fhand.close()
         genome_fhand.close()
 
         return kmers, kmers_locations
+
+
+def count_kmers(fhand, kmer_len, regions_fhand=None):
+
+    seqs = parse_fasta(fhand)
+    if regions_fhand:
+        heterochromatic_regions = GenomeRegions(regions_fhand)
+    else:
+        heterochromatic_regions = None
+
+    kmer_generator = KmerLocationGenerator(seqs, kmer_len, heterochromatic_regions=heterochromatic_regions)
+
+    for _ in kmer_generator.generate_kmer_locations():
+        _
+    return kmer_generator.kmer_counters

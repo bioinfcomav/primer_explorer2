@@ -3,7 +3,7 @@ import pickle
 import argparse
 from pathlib import Path
 
-from primer_explorer.kmer import get_kmers
+from primer_explorer.kmer import get_kmers, count_kmers
 from primer_explorer.pcr import (select_primers_combinations, get_pcr_products,
                                  annotate_products)
 
@@ -48,16 +48,25 @@ def get_args():
 
 def main():
     args = get_args()
-    genome_fpath = args['genome_fhand'].name
-    heterochromatic_regions_fpath = args['regions_fhand'].name
+    genome_fhand = args['genome_fhand']
+    heterochromatic_regions_fhand = args['regions_fhand']
     kmer_len = args['kmer_size']
     cache_dir = Path(args['cache_dir'])
+    if not cache_dir.exists():
+        cache_dir.mkdir(exist_ok=True)
+
     pcr_products_fhand = args['products_fhand']
     pcr_annotation_fhand = args['annotations_fhand']
 
-    kmers, kmers_locations = get_kmers(genome_fpath,
-                                       heterochromatic_regions_fpath,
-                                       kmer_len, cache_dir)
+    counters = count_kmers(genome_fhand, kmer_len,
+                           regions_fhand=heterochromatic_regions_fhand)
+
+    most_freq_kmers = [k[0] for k in counters[False].most_common(1000)]
+
+    kmers, kmers_locations = get_kmers(genome_fhand.name,
+                                       heterochromatic_regions_fhand.name,
+                                       kmer_len, cache_dir,
+                                       kmers_to_keep=most_freq_kmers)
 
     primer_combinations = select_primers_combinations(kmers)
     product_results = []
