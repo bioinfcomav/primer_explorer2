@@ -3,7 +3,8 @@
 import pickle
 import argparse
 
-from primer_explorer.stats import write_report
+from primer_explorer.stats import get_stats_by_pair_in_sets
+from primer_explorer.report import write_detailed_report
 
 
 def parse_arguments():
@@ -30,7 +31,9 @@ def get_args():
 def main():
     args = get_args()
     pcr_products_sets = pickle.load(args['products_fhand'])
-    write_report(args['report_fhand'], pcr_products_sets)
+    stats = get_stats_by_pair_in_sets(pcr_products_sets)
+
+    write_detailed_report(args['report_fhand'], stats)
 
 
 if __name__ == "__main__":

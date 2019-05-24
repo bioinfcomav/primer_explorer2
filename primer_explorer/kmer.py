@@ -156,7 +156,9 @@ def get_top_kmers_by_minimum_abundance(kmer_generator, min_abundance=1000,
             grouped_counters[kmer] += counts
 
     sorted_kmers = [kmer[0] for kmer in sorted(grouped_counters.items(),
-        key=itemgetter(1), reverse=True) if kmer[1] >= min_abundance][:max_num_kmers]
+                                               key=itemgetter(1),
+                                               reverse=True)
+                    if kmer[1] >= min_abundance][:max_num_kmers]
     return sorted_kmers
 
 

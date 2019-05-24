@@ -6,8 +6,7 @@ from pathlib import Path
 
 from primer_explorer.utils import get_fhand
 from primer_explorer.kmer import get_kmers, count_kmers
-from primer_explorer.pcr import (select_primers_combinations, get_pcr_products,
-                                 annotate_products)
+from primer_explorer.pcr import select_primers_combinations, get_pcr_products
 
 
 def parse_arguments():
@@ -70,8 +69,11 @@ def main():
     product_results = []
 
     for primer_combination in primer_combinations:
+
         pcr_products = get_pcr_products(kmers_locations, primer_combination)
-        product_results.append(pcr_products)
+        primer_group = {'primers': primer_combination,
+                        'products': pcr_products}
+        product_results.append(primer_group)
 
     pickle.dump(product_results, pcr_products_fhand, pickle.HIGHEST_PROTOCOL)
 

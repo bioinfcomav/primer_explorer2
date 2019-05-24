@@ -264,7 +264,7 @@ def get_total_nondimer_pcr_products(pcr_products):
             continue
         else:
             non_dimer_pcr_products.append(product)
-    return non_dimer_pcr_products, len(non_dimer_pcr_products)
+    return non_dimer_pcr_products
 
 
 def get_total_viable_products(pcr_products, min_viable_length=300):
@@ -307,36 +307,23 @@ def get_total_mixed_products(pcr_products):
 def get_pcr_products_counts(pcr_products):
     pcr_products_counts = Counter()
     pcr_products_counts["total_products"] = get_total_counts(pcr_products)
-
     viable_products = get_total_viable_products(pcr_products)
+    non_dimer_viable_products = get_total_nondimer_pcr_products(viable_products)
+    pcr_products_counts["total_non_dimer_products"] = len(non_dimer_viable_products)
     pcr_products_counts["viable_products"] = len(viable_products)
-    pcr_products_counts["euchromatin_products"] = get_total_euchromatic_products(viable_products)
-    pcr_products_counts["heterochromatin_products"] = get_total_heterochromatic_products(viable_products)
-    pcr_products_counts["mixed_products"] = get_total_mixed_products(viable_products)
+    pcr_products_counts["euchromatin_products"] = get_total_euchromatic_products(non_dimer_viable_products)
+    pcr_products_counts["heterochromatin_products"] = get_total_heterochromatic_products(non_dimer_viable_products)
+    pcr_products_counts["mixed_products"] = get_total_mixed_products(non_dimer_viable_products)
 
     return pcr_products_counts
 
 
-def write_primer_pair_stats(primer_pair, count, report_fhand):
-    report_fhand.write("{},{}\n".format(primer_pair[0].decode(), primer_pair[1].decode()))
-    report_fhand.write("-" * 20 + "\n")
-    report_fhand.write("Total Number of products:\t{}\n".format(str(count["total_products"])))
-    report_fhand.write("Number of nondimer pcr products:\t{}\n".format(str(count["total_non_dimer_products"])))
-    report_fhand.write("Number of nondimer and viable products (effective products):\t{}\n".format(str(count["viable_products"])))
-    report_fhand.write("Number of euchromatic effective products:\t{}\n".format(str(count["euchromatin_products"])))
-    report_fhand.write("Number of heterochromatic effective products:\t{}\n".format(str(count["heterochromatin_products"])))
-    report_fhand.write("Number of mixed effective products:\t{}\n".format(str(count["mixed_products"])))
-    report_fhand.write("Ratio euchromatin (without mixed):\t{:.2f}\n".format(count["euchromatin_products"] / (count["viable_products"] - count["mixed_products"])))
-    report_fhand.write("Ratio heterochromatin (without mixed):\t{:.2f}\n".format(count["heterochromatin_products"] / (count["viable_products"] - count["mixed_products"])))
-    report_fhand.flush()
-
-
-def write_report(report_fhand, pcr_products_sets):
-    for idx, pcr_products_set in enumerate(pcr_products_sets):
-        report_fhand.write("PRIMER SET {}\n".format(str(idx)))
-        report_fhand.write("#" * 30 + "\n")
-        for primer_pair, pcr_products in pcr_products_set.items():
+def get_stats_by_pair_in_sets(products_sets):
+    stats = {}
+    for set_index, set_info in enumerate(products_sets):
+        stats[set_index] = {'primers': set_info['primers'],
+                            'stats': {}}
+        for pair, pcr_products in set_info['products'].items():
             counts = get_pcr_products_counts(pcr_products)
-            write_primer_pair_stats(primer_pair, counts, report_fhand)
-        report_fhand.write("-" * 20 + "\n")
-        report_fhand.flush()
+            stats[set_index]['stats'][pair] = counts
+    return stats
