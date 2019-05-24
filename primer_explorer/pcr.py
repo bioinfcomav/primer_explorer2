@@ -81,6 +81,18 @@ def count_total_products(pcr_products):
     return len(pcr_products)
 
 
+def get_pcr_products_in_sets(primer_combinations, kmers, kmers_locations):
+    product_results = []
+
+    for primer_combination in primer_combinations:
+
+        pcr_products = get_pcr_products(kmers_locations, primer_combination)
+        primer_group = {'primers': primer_combination,
+                        'products': pcr_products}
+        product_results.append(primer_group)
+    return product_results
+
+
 def annotate_products(pcr_products):
     annotations = defaultdict(dict)
     for primers, products in pcr_products.items():

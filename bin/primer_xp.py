@@ -4,9 +4,9 @@ import argparse
 
 from pathlib import Path
 
-from primer_explorer.utils import get_fhand
-from primer_explorer.kmer import get_kmers, count_kmers
-from primer_explorer.pcr import select_primers_combinations, get_pcr_products
+from primer_explorer.kmer import get_kmers
+from primer_explorer.pcr import (select_primers_combinations,
+                                 get_pcr_products_in_sets)
 
 
 def parse_arguments():
@@ -57,14 +57,9 @@ def main():
                                        kmer_len, cache_dir)
 
     primer_combinations = select_primers_combinations(kmers)
-    product_results = []
 
-    for primer_combination in primer_combinations:
-
-        pcr_products = get_pcr_products(kmers_locations, primer_combination)
-        primer_group = {'primers': primer_combination,
-                        'products': pcr_products}
-        product_results.append(primer_group)
+    product_results = get_pcr_products_in_sets(primer_combinations, kmers,
+                                               kmers_locations)
 
     pickle.dump(product_results, pcr_products_fhand, pickle.HIGHEST_PROTOCOL)
 
