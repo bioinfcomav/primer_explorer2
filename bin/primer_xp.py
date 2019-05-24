@@ -25,10 +25,6 @@ def parse_arguments():
     parser.add_argument('-o', '--pcr_products', required=True,
                         help='Path to write pcr_products result',
                         type=argparse.FileType('wb'))
-    parser.add_argument('-a', '--pcr_annotations', required=True,
-                        help='Path to write pcr annotations result',
-                        type=argparse.FileType('wb'))
-
     return parser
 
 
@@ -40,12 +36,10 @@ def get_args():
     kmer_size = args.kmer_size
     cache_dir = args.cache_dir
     products_fhand = args.pcr_products
-    annotations_fhand = args.pcr_annotations
 
     return {'genome_fhand': genome_fhand, 'regions_fhand': regions_fhand,
             'kmer_size': kmer_size, 'cache_dir': cache_dir,
-            'products_fhand': products_fhand,
-            'annotations_fhand': annotations_fhand}
+            'products_fhand': products_fhand}
 
 
 def main():
@@ -58,7 +52,6 @@ def main():
         cache_dir.mkdir(exist_ok=True)
 
     pcr_products_fhand = args['products_fhand']
-    pcr_annotation_fhand = args['annotations_fhand']
 
     genome_fhand = get_fhand(genome_fhand.name)
     regions_fhand = get_fhand(heterochromatic_regions_fhand.name)
@@ -75,17 +68,12 @@ def main():
 
     primer_combinations = select_primers_combinations(kmers)
     product_results = []
-    annotation_results = []
 
     for primer_combination in primer_combinations:
         pcr_products = get_pcr_products(kmers_locations, primer_combination)
         product_results.append(pcr_products)
-        annotation = annotate_products(pcr_products)
-        annotation_results.append(annotation)
 
     pickle.dump(product_results, pcr_products_fhand, pickle.HIGHEST_PROTOCOL)
-    pickle.dump(annotation_results, pcr_annotation_fhand,
-                pickle.HIGHEST_PROTOCOL)
 
 
 if __name__ == '__main__':
