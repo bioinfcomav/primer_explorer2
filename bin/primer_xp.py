@@ -52,18 +52,9 @@ def main():
 
     pcr_products_fhand = args['products_fhand']
 
-    genome_fhand = get_fhand(genome_fhand.name)
-    regions_fhand = get_fhand(heterochromatic_regions_fhand.name)
-
-    counters = count_kmers(genome_fhand, kmer_len,
-                           regions_fhand=regions_fhand)
-
-    most_freq_kmers = [k[0] for k in counters[False].most_common(1000)]
-
     kmers, kmers_locations = get_kmers(genome_fhand.name,
                                        heterochromatic_regions_fhand.name,
-                                       kmer_len, cache_dir,
-                                       kmers_to_keep=most_freq_kmers)
+                                       kmer_len, cache_dir)
 
     primer_combinations = select_primers_combinations(kmers)
     product_results = []
