@@ -1,20 +1,21 @@
 import hashlib
 import pickle
-import gzip
 from itertools import groupby, combinations
 from collections import Counter, namedtuple, OrderedDict, defaultdict
 from operator import itemgetter
 
 from primer_explorer.dust_score import dust_score_is_ok
+from primer_explorer.utils import get_fhand
 from primer_explorer.seq_filters import gc_is_ok, blacklisted_seqs_in_seq
 from primer_explorer.regions import GenomeRegion, GenomeRegions
-from primer_explorer.primer3.primer3 import reverse_complement, kmer_validated_by_primer3
-from zipfile import is_zipfile
+from primer_explorer.primer3.primer3 import (reverse_complement,
+                                             kmer_validated_by_primer3)
 
 GT_BIN = b'>'
 GT_CHAR = ord(GT_BIN)
 
-KmerAndLocation = namedtuple('KmerAndLocation', ('seq', 'chrom_location', 'is_heterochromatic'))
+KmerAndLocation = namedtuple('KmerAndLocation', ('seq', 'chrom_location',
+                                                 'is_heterochromatic'))
 
 
 def get_first_that_complies(iterator, condition):
@@ -114,7 +115,8 @@ class KmerLocationGenerator:
 
 
 def parse_fasta(fhand, ignore_softmask=True):
-    fasta_chunks = (x[1] for x in groupby(fhand, lambda line: line[0] == GT_CHAR))
+    fasta_chunks = (x[1] for x in groupby(fhand,
+                                          lambda line: line[0] == GT_CHAR))
     while True:
         try:
             header = list(next(fasta_chunks))[0][1:]
@@ -146,13 +148,15 @@ def get_top_kmers_by_euchromatin_abundance(kmer_generator, max_num_kmers):
     return sorted_by_abundance_kmers[:max_num_kmers]
 
 
-def get_top_kmers_by_minimum_abundance(kmer_generator, min_abundance=1000, max_num_kmers=1000):
+def get_top_kmers_by_minimum_abundance(kmer_generator, min_abundance=1000,
+                                       max_num_kmers=1000):
     grouped_counters = defaultdict(int)
     for _bool in [True, False]:
         for kmer, counts in kmer_generator.kmer_counters[_bool].items():
             grouped_counters[kmer] += counts
 
-    sorted_kmers = [kmer[0] for kmer in sorted(grouped_counters.items(), key=itemgetter(1), reverse=True) if kmer[1] >= min_abundance][:max_num_kmers]
+    sorted_kmers = [kmer[0] for kmer in sorted(grouped_counters.items(),
+        key=itemgetter(1), reverse=True) if kmer[1] >= min_abundance][:max_num_kmers]
     return sorted_kmers
 
 
@@ -262,15 +266,6 @@ def generate_kmer_locations(genome_fhand, kmer_len, heterochromatic_regions,
     return filtered_kmers, packed_kmers
 
 
-def is_gzipfile(fpath):
-    with gzip.open(fpath) as fhand:
-        try:
-            fhand.readline()
-            return True
-        except IOError:
-            return False
-
-
 def get_kmers(genome_fpath, heterochromatic_regions_fpath, kmer_len, cache_dir,
               kmers_to_keep=None):
     key = str(genome_fpath)
@@ -282,15 +277,8 @@ def get_kmers(genome_fpath, heterochromatic_regions_fpath, kmer_len, cache_dir,
         kmers, kmers_locations = pickle.load(cache_fpath.open('rb'))
         return kmers, kmers_locations
     else:
-        if is_gzipfile(heterochromatic_regions_fpath):
-            regions_fhand = gzip.open(heterochromatic_regions_fpath, 'rb')
-        else:
-            regions_fhand = open(heterochromatic_regions_fpath, 'rb')
-
-        if is_gzipfile(genome_fpath):
-            genome_fhand = gzip.open(genome_fpath, 'rb')
-        else:
-            genome_fhand = open(genome_fpath, 'rb')
+        regions_fhand = get_fhand(heterochromatic_regions_fpath)
+        genome_fhand = get_fhand(genome_fpath)
 
         heterochromatic_regions = GenomeRegions(regions_fhand)
         kmers, kmers_locations = generate_kmer_locations(genome_fhand,

@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 import pickle
 import argparse
+
 from pathlib import Path
 
+from primer_explorer.utils import get_fhand
 from primer_explorer.kmer import get_kmers, count_kmers
 from primer_explorer.pcr import (select_primers_combinations, get_pcr_products,
                                  annotate_products)
@@ -58,8 +60,11 @@ def main():
     pcr_products_fhand = args['products_fhand']
     pcr_annotation_fhand = args['annotations_fhand']
 
+    genome_fhand = get_fhand(genome_fhand.name)
+    regions_fhand = get_fhand(heterochromatic_regions_fhand.name)
+
     counters = count_kmers(genome_fhand, kmer_len,
-                           regions_fhand=heterochromatic_regions_fhand)
+                           regions_fhand=regions_fhand)
 
     most_freq_kmers = [k[0] for k in counters[False].most_common(1000)]
 
