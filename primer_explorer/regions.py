@@ -1,16 +1,24 @@
+
 class GenomeRegions:
 
-    def __init__(self, bed_fhand):
+    def __init__(self, bed_fhand, pcr_products=None):
         self._bed_fhand = bed_fhand
+        self._pcr_products = iter(pcr_products)
 
     def __iter__(self):
         return self
 
     def __next__(self):
-        line_items = next(self._bed_fhand).split()
-        chrom = line_items[0]
-        start = int(line_items[1])
-        stop = int(line_items[2])
+        if self._pcr_products is None:
+            line_items = next(self._bed_fhand).split()
+            chrom = line_items[0]
+            start = int(line_items[1])
+            stop = int(line_items[2])
+        else:
+            pcr_product = next(self._pcr_products)
+            chrom = pcr_product[0].chrom_location[0]
+            start = pcr_product[0].chrom_location[1]
+            stop = pcr_product[0].chrom_location[1]
         return GenomeRegion(chrom, start, stop)
 
 
