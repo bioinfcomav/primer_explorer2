@@ -20,7 +20,7 @@ class TestKmerGenerator(unittest.TestCase):
     def test_generate_kmers(self):
         with open(TEST_DATA_PATHDIR / 'heterochromatin_prueba.bed', 'rb') as regions_fhand, \
                 open(TEST_DATA_PATHDIR / 'kmers.fa', 'rb') as genome_fhand:
-            heterochromatic_regions = list(GenomeRegions(regions_fhand))
+            heterochromatic_regions = list(GenomeRegions(bed_fhand=regions_fhand))
             genome = parse_fasta(genome_fhand)
             kmer_generator = KmerLocationGenerator(genome, 8, heterochromatic_regions)
             list(kmer_generator.generate_kmer_locations())
@@ -30,7 +30,7 @@ class TestKmerGenerator(unittest.TestCase):
 
         with open(TEST_DATA_PATHDIR / 'small_kmers.bed', 'rb') as regions_fhand, \
                 open(TEST_DATA_PATHDIR / 'small_kmers.fasta', 'rb') as genome_fhand:
-            heterochromatic_regions = GenomeRegions(regions_fhand)
+            heterochromatic_regions = GenomeRegions(bed_fhand=regions_fhand)
             genome = parse_fasta(genome_fhand)
             kmer_generator = KmerLocationGenerator(genome, 8, heterochromatic_regions)
             locations = list(kmer_generator.generate_kmer_locations())
@@ -89,7 +89,7 @@ class TestSortByEuchromatinStats(unittest.TestCase):
     def test_sort_by_euchromatin_abundance(self):
         with open(TEST_DATA_PATHDIR / 'heterochromatin_abundance.bed', 'rb') as regions_fhand, \
                 open(TEST_DATA_PATHDIR / "kmers_abundance.fa", 'rb') as genome_fhand:
-            heterochromatic_regions = GenomeRegions(regions_fhand)
+            heterochromatic_regions = GenomeRegions(bed_fhand=regions_fhand)
             genome = parse_fasta(genome_fhand)
             kmer_generator = KmerLocationGenerator(genome, 8, heterochromatic_regions)
             filtered_kmer_locations = [b'GGTAGGAT', b'TAGGATGG', b'GTAGGATG']
@@ -103,7 +103,7 @@ class TestSortByEuchromatinStats(unittest.TestCase):
         filtered_kmers_to_test = [b'TGGTAGGG', b'GGCATATG', b'GTAGGGCA', b'AGGGCATA', b'TAGGGCAT', b'GGTAGGGC', b'GGGCATAT']
         with open(TEST_DATA_PATHDIR / 'heterochromatin_abundance.bed', 'rb') as regions_fhand, \
                 open(TEST_DATA_PATHDIR / "kmers_abundance.fa", 'rb') as genome_fhand:
-            heterochromatic_regions = GenomeRegions(regions_fhand)
+            heterochromatic_regions = GenomeRegions(bed_fhand=regions_fhand)
             genome = parse_fasta(genome_fhand)
             kmer_generator = KmerLocationGenerator(genome, 8, heterochromatic_regions)
             kmer_locations = kmer_generator.generate_kmer_locations()
@@ -116,7 +116,7 @@ class TestSortByEuchromatinStats(unittest.TestCase):
         with open(TEST_DATA_PATHDIR / 'heterochromatin_abundance.bed', 'rb') as regions_fhand, \
                 open(TEST_DATA_PATHDIR / "kmers_abundance.fa", 'rb') as genome_fhand:
             genome = parse_fasta(genome_fhand)
-            heterochromatic_regions = GenomeRegions(regions_fhand)
+            heterochromatic_regions = GenomeRegions(bed_fhand=regions_fhand)
             kmer_generator = KmerLocationGenerator(genome, 8, heterochromatic_regions)
             kmer_locations = kmer_generator.generate_kmer_locations()
             kmer_locations = list(kmer_locations)

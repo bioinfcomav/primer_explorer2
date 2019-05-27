@@ -10,6 +10,7 @@ from primer_explorer.regions import GenomeRegions
 
 def get_pcr_products_sets(pcr_products_fhand):
     for pcr_products_set in pcr_products_fhand:
+        print(pcr_products_set)
         primers, pcr_products = pcr_products_set
         yield primers, pcr_products
 
@@ -25,7 +26,7 @@ def parse_arguments():
 
 def get_args():
     parser = parse_arguments()
-    args = parser.get_args()
+    args = parser.parse_args()
     pcr_products_fpath = args.pcr_products
     out_fpath = args.out_bed
     return {'pcr_products_fpath': pcr_products_fpath,
@@ -33,14 +34,13 @@ def get_args():
 
 
 def main():
-    parser = get_args()
-    args = parser.parse_args()
-    pcr_products_fhand = pickle.load(args['pcr_products_fpath'])
+    args = get_args()
+    pcr_products_sets = pickle.load(args['pcr_products_fpath'])
     out_fdir = args['out_fpath']
-    for _, primer_set in get_pcr_products_sets(pcr_products_fhand):
-        for primer_pair, pcr_products in primer_set.items():
-            products_regions = GenomeRegions(pcr_products)
-            write_bed(primer_pair, products_regions, out_fdir)
+    for pcr_products_set in pcr_products_sets:
+        for pair, pcr_products in pcr_products_set['products'].items():
+            pcr_products_regions = GenomeRegions(pcr_products=pcr_products)
+            write_bed(pair, pcr_products_regions, out_fdir)
 
 
 if __name__ == "__main__":

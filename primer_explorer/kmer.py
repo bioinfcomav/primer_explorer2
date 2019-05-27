@@ -290,7 +290,7 @@ def get_kmers(genome_fpath, heterochromatic_regions_fpath, kmer_len, cache_dir):
         regions_fhand = get_fhand(heterochromatic_regions_fpath)
         genome_fhand = get_fhand(genome_fpath)
 
-        heterochromatic_regions = GenomeRegions(regions_fhand)
+        heterochromatic_regions = GenomeRegions(bed_fhand=regions_fhand)
         kmers, kmers_locations = generate_kmer_locations(genome_fhand,
                                                          kmer_len=kmer_len,
                                                          heterochromatic_regions=heterochromatic_regions,
@@ -308,7 +308,7 @@ def count_kmers(fhand, kmer_len, regions_fhand=None):
 
     seqs = parse_fasta(fhand)
     if regions_fhand:
-        heterochromatic_regions = GenomeRegions(regions_fhand)
+        heterochromatic_regions = GenomeRegions(bed_fhand=regions_fhand)
     else:
         heterochromatic_regions = None
 

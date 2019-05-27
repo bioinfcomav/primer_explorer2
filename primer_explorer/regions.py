@@ -1,9 +1,9 @@
 
 class GenomeRegions:
 
-    def __init__(self, bed_fhand, pcr_products=None):
+    def __init__(self, bed_fhand=None, pcr_products=None):
         self._bed_fhand = bed_fhand
-        self._pcr_products = iter(pcr_products)
+        self._pcr_products = iter(pcr_products) if pcr_products is not None else None
 
     def __iter__(self):
         return self
@@ -18,7 +18,7 @@ class GenomeRegions:
             pcr_product = next(self._pcr_products)
             chrom = pcr_product[0].chrom_location[0]
             start = pcr_product[0].chrom_location[1]
-            stop = pcr_product[0].chrom_location[1]
+            stop = pcr_product[1].chrom_location[1]
         return GenomeRegion(chrom, start, stop)
 
 
