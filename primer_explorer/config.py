@@ -23,6 +23,8 @@ MIN_PCR_VIABLE_LENGTH = 300
 PRIMER3_CONFIG_FPATH = str(CODE_DIR / "primer3/primer3_config/") + '/'
 PRIMER3_CORE_FPATH = "primer3_core"
 
+
+GFF_FEATURES = ["mRNA", "exon", "five_prime_UTR", "three_prime_UTR", 'intron']
 COMPLEMENTARY_BASES = {'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C', '-': '-'}
 MELTING_TEMPERATURE_THRESHOLD = 0
 MAX_COMP_END = 3
@@ -52,3 +54,5 @@ PAIR_PRIMER3_FILTERING_CRITERIA = {"primer3_config_fpath": PRIMER3_CONFIG_FPATH,
                                    "max_complementary_any": MAX_COMP_ANY,
                                    "max_complementary_factor": MAX_COMP_ANY_FACTOR,
                                    "max_diff_temp": 40}
+
+BEDTOOLS_INTERSECT_BINARY = ["bedtools", "intersect"]

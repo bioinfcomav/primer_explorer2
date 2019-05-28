@@ -26,3 +26,14 @@ def write_detailed_report(report_fhand, stats):
 
     report_fhand.write("\n".join(report))
     report_fhand.flush()
+
+
+def write_gff_report(gff_results, output_fhand):
+    report = []
+    report.append("PRIMER PAIR\tEXONS\tINTRONS")
+    for primer_pair, results in gff_results.items():
+        report.append("{}\t{}\t{}".format(primer_pair, results["exon"],
+                                          results["intron"]))
+    output_fhand.write("\n".join(report).encode())
+    output_fhand.flush()
+    output_fhand.close()
