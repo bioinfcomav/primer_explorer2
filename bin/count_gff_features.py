@@ -54,7 +54,7 @@ def main():
     out_fpath = args['output_fpath']
     beds_fpaths = get_beds_fpaths(bed_fdir)
     gff_results = count_number_of_products(beds_fpaths, defaultdict(dict))
-    gff_results = get_gff_intersect_results(beds_fpaths, gff_fpath)
+    gff_results = get_gff_intersect_results(beds_fpaths, gff_fpath, gff_results)
     write_gff_report(gff_results, out_fpath)
 
 
