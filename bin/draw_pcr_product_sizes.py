@@ -10,6 +10,7 @@ BINS = 10
 
 
 def _calc_product_length(pair):
+    print(pair)
     if pair[0].chrom_location[0] != pair[1].chrom_location[0]:
         raise RuntimeError("the products doesn't have the same chrom")
     start = pair[0].chrom_location[1]
@@ -79,8 +80,7 @@ def main():
 def get_stats(pcr_products, selected_primers, num_sets_to_represent):
     stats = {}
     for set_index in range(num_sets_to_represent):
-        primer_set = pcr_products[set_index]
-
+        primer_set = pcr_products[set_index]['products']
         if selected_primers is not None:
             combinations = itertools.combinations(selected_primers, 2)
         else:
@@ -99,7 +99,7 @@ def get_stats(pcr_products, selected_primers, num_sets_to_represent):
                 products_to_calculate += products2
 
             if products_to_calculate:
-                lengths = [_calc_product_length(pair) for pair in products_to_calculate]
+                lengths = [_calc_product_length(pair) for pair in primer_set[combination]]
                 stats[combination] = lengths
 
     return stats
