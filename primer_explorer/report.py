@@ -30,10 +30,11 @@ def write_detailed_report(report_fhand, stats):
 
 def write_gff_report(gff_results, output_fhand):
     report = []
-    report.append("PRIMER PAIR\tEXONS\tINTRONS")
+    report.append("PRIMER PAIR\tEXONS\tINTRONS\tNUM_PCR_PRODUCTS")
     for primer_pair, results in gff_results.items():
         report.append("{}\t{}\t{}".format(primer_pair, results["exon"],
-                                          results["intron"]))
+                                          results["intron"],
+                                          results["num_pcr_products"]))
     output_fhand.write("\n".join(report).encode())
     output_fhand.flush()
     output_fhand.close()

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import argparse
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from os import listdir
 from os.path import join
 from primer_explorer.gff import get_gff_intersect_results
@@ -38,12 +38,22 @@ def get_args():
             'output_fpath': out_fpath}
 
 
+def count_number_of_products(beds_fpaths, gff_results):
+    for pair, bed_fpath in beds_fpaths.items():
+        with open(bed_fpath) as fhand:
+            for idx, line in enumerate(fhand):
+                pass
+        gff_results[pair]["num_pcr_products"] = idx
+    return gff_results
+
+
 def main():
     args = get_args()
     bed_fdir = args['bed_fdir']
     gff_fpath = args['gff_fpath']
     out_fpath = args['output_fpath']
     beds_fpaths = get_beds_fpaths(bed_fdir)
+    gff_results = count_number_of_products(beds_fpaths, defaultdict(dict))
     gff_results = get_gff_intersect_results(beds_fpaths, gff_fpath)
     write_gff_report(gff_results, out_fpath)
 

@@ -30,8 +30,7 @@ def count_bedtools_intersect_features(stdout):
     return features
 
 
-def get_gff_intersect_results(bed_fpaths, gff):
-    gff_results = defaultdict(dict)
+def get_gff_intersect_results(bed_fpaths, gff, gff_results):
     for primer_pairs, bed_fpath in bed_fpaths.items():
         bin = config.BEDTOOLS_INTERSECT_BINARY
         args = ["-a", str(gff), "-b", str(bed_fpath)]
