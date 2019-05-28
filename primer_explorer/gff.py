@@ -37,5 +37,5 @@ def get_gff_intersect_results(bed_fpaths, gff, gff_results):
         cmd = " ".join(bin + args).encode()
         stdout = _run_script(cmd)
         results = count_bedtools_intersect_features(stdout)
-        gff_results[primer_pairs] = results
+        gff_results[primer_pairs].update(results)
     return gff_results
