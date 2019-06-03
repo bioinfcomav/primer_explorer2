@@ -1,7 +1,12 @@
 
+
 class GenomeRegions:
 
     def __init__(self, bed_fhand=None, pcr_products=None):
+        if bed_fhand is None and pcr_products is None:
+            raise ValueError('At least one input is required')
+        elif bed_fhand is not None and pcr_products is not None:
+            raise ValueError('Can not work wth two inputs')
         self._bed_fhand = bed_fhand
         self._pcr_products = iter(pcr_products) if pcr_products is not None else None
 
