@@ -268,7 +268,8 @@ def generate_kmer_locations(genome_fhand, kmer_len, heterochromatic_regions,
     return filtered_kmers, packed_kmers
 
 
-def get_kmers(genome_fpath, heterochromatic_regions_fpath, kmer_len, cache_dir):
+def get_kmers(genome_fpath, heterochromatic_regions_fpath, kmer_len, cache_dir,
+              num_kmers_to_keep=1000):
     key = str(genome_fpath)
     key += str(heterochromatic_regions_fpath)
     key += str(kmer_len)
@@ -285,7 +286,7 @@ def get_kmers(genome_fpath, heterochromatic_regions_fpath, kmer_len, cache_dir):
                                regions_fhand=regions_fhand)
         genome_fhand.close()
         regions_fhand.close()
-        most_freq_kmers = [k[0] for k in counters[False].most_common(1000)]
+        most_freq_kmers = [k[0] for k in counters[False].most_common(num_kmers_to_keep)]
 
         regions_fhand = get_fhand(heterochromatic_regions_fpath)
         genome_fhand = get_fhand(genome_fpath)

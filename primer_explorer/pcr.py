@@ -8,8 +8,9 @@ from primer_explorer.combinations import get_compatible_groups_of_primers
 PrimerAndLocation = namedtuple('PrimerAndLocation', ('strand', 'seq', 'chrom_location', 'is_heterochromatic'))
 
 
-def select_primers_combinations(kmers, num_possible_combinations=10):
-    compatibility_primers_groups = get_compatible_groups_of_primers(kmers, num_compatible_groups=num_possible_combinations)
+def select_primers_combinations(kmers, num_compatible_groups=10):
+    print(kmers)
+    compatibility_primers_groups = get_compatible_groups_of_primers(kmers, num_compatible_groups=num_compatible_groups)
     return compatibility_primers_groups
 
 
@@ -85,7 +86,6 @@ def get_pcr_products_in_sets(primer_combinations, kmers, kmers_locations):
     product_results = []
 
     for primer_combination in primer_combinations:
-
         pcr_products = get_pcr_products(kmers_locations, primer_combination)
         primer_group = {'primers': primer_combination,
                         'products': pcr_products}

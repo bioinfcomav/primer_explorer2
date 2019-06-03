@@ -10,15 +10,15 @@ def get_compatible_groups_of_primers(primers, seed_index=0, num_compatible_group
     compatible_primers_group, incompatible_primers = make_compatibility_group(
         seed_primer, primers)
     compatibility_primers_groups.append(compatible_primers_group)
-    if len(incompatible_primers) == 0:
-        return compatible_primers_group
+    if num_compatible_groups == 1 or len(incompatible_primers) == 0:
+        return compatibility_primers_groups
     else:
         for primer in incompatible_primers:
             seed_primer = [primer]
             compatible_primers_group, _ = make_compatibility_group(
                 seed_primer, primers)
             compatibility_primers_groups.append(compatible_primers_group)
-            if len(compatibility_primers_groups) == num_compatible_groups:
+            if len(compatibility_primers_groups) >= num_compatible_groups:
                 break
     return compatibility_primers_groups
 

@@ -24,6 +24,10 @@ def parse_arguments():
     parser.add_argument('-o', '--pcr_products', required=True,
                         help='Path to write pcr_products result',
                         type=argparse.FileType('wb'))
+    parser.add_argument('-k', '--top_kmers', help='number of top kmers to use',
+                        type=int, default=1000)
+    parser.add_argument('-m', '--num_sets', help="number of sets of primers to calculate",
+                        type=int, default=10)
     return parser
 
 
@@ -35,10 +39,13 @@ def get_args():
     kmer_size = args.kmer_size
     cache_dir = args.cache_dir
     products_fhand = args.pcr_products
+    top_kmers = args.top_kmers
+    num_sets = args.num_sets
 
     return {'genome_fhand': genome_fhand, 'regions_fhand': regions_fhand,
             'kmer_size': kmer_size, 'cache_dir': cache_dir,
-            'products_fhand': products_fhand}
+            'products_fhand': products_fhand, 'top_kmers': top_kmers,
+            'num_sets': num_sets}
 
 
 def main():
@@ -47,6 +54,8 @@ def main():
     heterochromatic_regions_fhand = args['regions_fhand']
     kmer_len = args['kmer_size']
     cache_dir = Path(args['cache_dir'])
+    top_kmers = args['top_kmers']
+    num_sets = args['num_sets']
     if not cache_dir.exists():
         cache_dir.mkdir(exist_ok=True)
 
@@ -54,9 +63,8 @@ def main():
 
     kmers, kmers_locations = get_kmers(genome_fhand.name,
                                        heterochromatic_regions_fhand.name,
-                                       kmer_len, cache_dir)
-
-    primer_combinations = select_primers_combinations(kmers)
+                                       kmer_len, cache_dir, num_kmers_to_keep=top_kmers)
+    primer_combinations = select_primers_combinations(kmers, num_compatible_groups=num_sets)
 
     product_results = get_pcr_products_in_sets(primer_combinations, kmers,
                                                kmers_locations)
