@@ -1,19 +1,11 @@
 #!/usr/bin/env python
 import argparse
-from collections import OrderedDict, defaultdict
+from collections import OrderedDict
 from os import listdir
 from os.path import join
-from primer_explorer.gff import get_gff_intersect_results
+
+from primer_explorer.gff import count_regions_in_gff_features
 from primer_explorer.report import write_gff_report
-
-
-def get_beds_fpaths(bed_dir):
-    bed_fpaths = OrderedDict()
-    for bed_fname in listdir(path=bed_dir):
-        if bed_fname.endswith(".bed"):
-            primers_pair = str(bed_fname).split(".")[0]
-            bed_fpaths[primers_pair] = join(bed_dir, bed_fname)
-    return bed_fpaths
 
 
 def parse_arguments():
@@ -38,13 +30,27 @@ def get_args():
             'output_fpath': out_fpath}
 
 
-def count_number_of_products(beds_fpaths, gff_results):
-    for pair, bed_fpath in beds_fpaths.items():
-        with open(bed_fpath) as fhand:
-            for idx, line in enumerate(fhand):
-                pass
-        gff_results[pair]["num_pcr_products"] = idx
-    return gff_results
+def get_beds_fpaths(bed_dir):
+    bed_fpaths = OrderedDict()
+    for bed_fname in listdir(path=bed_dir):
+        if bed_fname.endswith(".bed"):
+            primers_pair = str(bed_fname).split(".")[0]
+            bed_fpaths[primers_pair] = join(bed_dir, bed_fname)
+    return bed_fpaths
+
+
+def _count_lines(fpath):
+    f = open(fpath, 'rb')
+    lines = 0
+    buf_size = 1024 * 1024
+    read_f = f.raw.read
+
+    buf = read_f(buf_size)
+    while buf:
+        lines += buf.count(b'\n')
+        buf = read_f(buf_size)
+
+    return lines
 
 
 def main():
@@ -52,10 +58,16 @@ def main():
     bed_fdir = args['bed_fdir']
     gff_fpath = args['gff_fpath']
     out_fpath = args['output_fpath']
-    beds_fpaths = get_beds_fpaths(bed_fdir)
-    gff_results = count_number_of_products(beds_fpaths, defaultdict(dict))
-    gff_results = get_gff_intersect_results(beds_fpaths, gff_fpath, gff_results)
-    write_gff_report(gff_results, out_fpath)
+
+    fpaths_by_pair = get_beds_fpaths(bed_fdir)
+
+    counts_by_pair = {}
+    for pair, fpath in fpaths_by_pair.items():
+        counts_by_pair[pair]["num_pcr_products"] = _count_lines(fpath)
+        feature_counts = count_regions_in_gff_features(fpath, gff_fpath)
+        counts_by_pair[pair].update(feature_counts)
+
+    write_gff_report(counts_by_pair, out_fpath)
 
 
 if __name__ == "__main__":

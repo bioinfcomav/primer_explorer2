@@ -1,41 +1,32 @@
-from collections import Counter, defaultdict, OrderedDict
-from os import listdir
-from os.path import join
-from subprocess import CalledProcessError, check_output
-from tempfile import NamedTemporaryFile
-
+import subprocess
+from collections import Counter
 
 from primer_explorer import config
 
 
-def _run_script(cmd):
-    tmp_fhand = NamedTemporaryFile()
-    tmp_fhand.write(cmd)
-    tmp_fhand.flush()
-    try:
-        return check_output(['sh', tmp_fhand.name])
-    except CalledProcessError:
-        raise
+def count_features_in_gff(gff_content, features_to_count=None):
+    feature_counts = Counter()
+    for line in gff_content:
+        line = line.strip()
+        if not line or line.startwith('#'):
+            continue
+        line = line.split("\t")
+        feature = line[2]
+        if (features_to_count is None or
+                (features_to_count and feature in config.GFF_FEATURES)):
+            feature_counts[feature] += 1
+    return feature_counts
 
 
-def count_bedtools_intersect_features(stdout):
-    features = Counter()
-    stdout = stdout.decode('utf-8').rstrip()
-    if len(stdout) > 0:
-        for line in stdout.split("\n"):
-            line = line.split("\t")
-            feature = line[2]
-            if feature in config.GFF_FEATURES:
-                features[feature] += 1
-    return features
-
-
-def get_gff_intersect_results(bed_fpaths, gff, gff_results):
-    for primer_pairs, bed_fpath in bed_fpaths.items():
-        bin = config.BEDTOOLS_INTERSECT_BINARY
-        args = ["-a", str(gff), "-b", str(bed_fpath)]
-        cmd = " ".join(bin + args).encode()
-        stdout = _run_script(cmd)
-        results = count_bedtools_intersect_features(stdout)
-        gff_results[primer_pairs].update(results)
-    return gff_results
+def count_regions_in_gff_features(bed_fpath, gff_fpath,
+                                  features_to_count=None):
+    bedtools_binary = config.BEDTOOLS_BINARY
+    cmd = [bedtools_binary, 'intersect', "-a", str(gff_fpath), "-b",
+           str(bed_fpath)]
+    output = subprocess.run(cmd, capture_output=True)
+    if output:
+        counts = count_features_in_gff(output,
+                                       features_to_count=features_to_count)
+    else:
+        counts = None
+    return counts

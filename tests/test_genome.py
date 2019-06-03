@@ -1,5 +1,10 @@
 import unittest
-from primer_explorer.regions import GenomeRegion
+from pathlib import Path
+
+import primer_explorer
+from primer_explorer.regions import GenomeRegion, GenomeRegions
+
+TEST_DATA_PATHDIR = Path(primer_explorer.__file__).parent.parent.joinpath('tests').joinpath('data')
 
 
 class TestKmerGenerator(unittest.TestCase):
@@ -22,6 +27,14 @@ class TestKmerGenerator(unittest.TestCase):
         assert GenomeRegion('c', 10, 12).overlaps(GenomeRegion('c', 11, 13))
         assert not GenomeRegion('c', 10, 12).overlaps(GenomeRegion('c', 12, 13))
         assert GenomeRegion('c', 10, 15).overlaps(GenomeRegion('c', 11, 13))
+
+    def test_genome_regions(self):
+        with (TEST_DATA_PATHDIR / 'heterochromatin.bed').open() as bed_fhand:
+            regions = list(GenomeRegions(bed_fhand=bed_fhand))
+            assert len(regions) == 2
+            assert regions[0].chrom == 'test_kmers'
+            assert regions[0].start == 0
+            assert regions[0].stop == 5
 
 
 if __name__ == "__main__":
