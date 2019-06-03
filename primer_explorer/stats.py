@@ -284,7 +284,7 @@ def get_total_euchromatic_products(pcr_products):
     for product in pcr_products:
         if all(not primer.is_heterochromatic for primer in product):
             euchromatic_products.append(product)
-    return len(euchromatic_products)
+    return euchromatic_products
 
 
 def get_total_heterochromatic_products(pcr_products):
@@ -292,7 +292,7 @@ def get_total_heterochromatic_products(pcr_products):
     for product in pcr_products:
         if all(primer.is_heterochromatic for primer in product):
             heterochromatic_products.append(product)
-    return len(heterochromatic_products)
+    return heterochromatic_products
 
 
 def get_total_mixed_products(pcr_products):
@@ -301,20 +301,27 @@ def get_total_mixed_products(pcr_products):
         if (not all(not primer.is_heterochromatic for primer in product) and
                 not all(primer.is_heterochromatic for primer in product)):
             mixed_products.append(product)
-    return len(mixed_products)
+    return mixed_products
 
 
 def get_pcr_products_counts(pcr_products):
     pcr_products_counts = Counter()
     pcr_products_counts["total_products"] = get_total_counts(pcr_products)
+    non_dimer_products = get_total_nondimer_pcr_products(pcr_products)
     viable_products = get_total_viable_products(pcr_products)
-    non_dimer_viable_products = get_total_nondimer_pcr_products(viable_products)
-    pcr_products_counts["total_non_dimer_products"] = len(non_dimer_viable_products)
+    non_dimer_viable_products = get_total_viable_products(non_dimer_products)
+    pcr_products_counts["total_non_dimer_products"] = len(non_dimer_products)
     pcr_products_counts["viable_products"] = len(viable_products)
-    pcr_products_counts["euchromatin_products"] = get_total_euchromatic_products(non_dimer_viable_products)
-    pcr_products_counts["heterochromatin_products"] = get_total_heterochromatic_products(non_dimer_viable_products)
-    pcr_products_counts["mixed_products"] = get_total_mixed_products(non_dimer_viable_products)
-
+    pcr_products_counts["non_dimer_viable_products"] = len(non_dimer_viable_products)
+    euchromatin_products = get_total_euchromatic_products(non_dimer_viable_products)
+    pcr_products_counts["euchromatin_products"] = len(euchromatin_products)
+    heterochromatin_products = get_total_heterochromatic_products(non_dimer_viable_products)
+    pcr_products_counts["heterochromatin_products"] = len(heterochromatin_products)
+    mixed_products = get_total_mixed_products(non_dimer_viable_products)
+    pcr_products_counts["mixed_products"] = len(mixed_products)
+    pcr_products_counts["euchromatin_nucleotides"] = get_total_number_of_nucleotides_in_pcr_products(euchromatin_products)
+    pcr_products_counts["heterochromatin_nucleotides"] = get_total_number_of_nucleotides_in_pcr_products(heterochromatin_products)
+    pcr_products_counts["mixed_nucleotides"] = get_total_number_of_nucleotides_in_pcr_products(mixed_products)
     return pcr_products_counts
 
 
@@ -327,3 +334,13 @@ def get_stats_by_pair_in_sets(products_sets):
             counts = get_pcr_products_counts(pcr_products)
             stats[set_index]['stats'][pair] = counts
     return stats
+
+
+def get_total_number_of_nucleotides_in_pcr_products(pcr_products):
+    nucleotides = 0
+    for product in pcr_products:
+        fwd_primer_position = product[0].chrom_location[1]
+        rev_primer_position = product[1].chrom_location[1]
+        nucleotide_distance = abs(fwd_primer_position - rev_primer_position)
+        nucleotides += nucleotide_distance
+    return nucleotides
