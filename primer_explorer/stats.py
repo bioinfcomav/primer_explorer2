@@ -251,10 +251,6 @@ class IntCounter(Counter):
         return ''
 
 
-def get_total_counts(pcr_products):
-    return len(pcr_products)
-
-
 def get_total_nondimer_pcr_products(pcr_products):
     non_dimer_pcr_products = []
     for product in pcr_products:
@@ -267,16 +263,29 @@ def get_total_nondimer_pcr_products(pcr_products):
     return non_dimer_pcr_products
 
 
-def get_total_viable_products(pcr_products, min_viable_length=300):
+def filter_by_length(pcr_products, min_length=300):
     viable_products = []
     for product in pcr_products:
         fwd_primer_position = product[0].chrom_location[1]
         rev_primer_position = product[1].chrom_location[1]
-        if abs(fwd_primer_position - rev_primer_position) < min_viable_length:
+        if abs(fwd_primer_position - rev_primer_position) < min_length:
             continue
         else:
             viable_products.append(product)
     return viable_products
+
+# def _filter_by_euchromatic_annotation(pcr_products, reverse=False):
+#     products = []
+#     for product in pcr_products:
+#         if ((reverse and is_full_heterochromatic(product)) or
+#                 (not reverse and not is_full_heterochromatic(product))):
+#             products.append(product)
+#
+#     return products
+#
+#
+# def is_full_heterochromatic(product):
+#     return all(not primer.is_heterochromatic for primer in product)
 
 
 def get_total_euchromatic_products(pcr_products):
@@ -308,7 +317,7 @@ def get_pcr_products_counts(pcr_products):
     pcr_products_counts = Counter()
     non_dimer_products = get_total_nondimer_pcr_products(pcr_products)
     pcr_products_counts["total_products"] = len(non_dimer_products)
-    viable_products = get_total_viable_products(non_dimer_products)
+    viable_products = filter_by_length(non_dimer_products)
     pcr_products_counts["viable_products"] = len(viable_products)
     euchromatin_products = get_total_euchromatic_products(viable_products)
     pcr_products_counts["euchromatin_products"] = len(euchromatin_products)
