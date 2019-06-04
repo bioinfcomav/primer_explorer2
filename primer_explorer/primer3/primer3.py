@@ -57,7 +57,6 @@ def _run_primer3(primer3_binary, arguments):
         return results
 
     else:
-        print(arguments)
         msg = "Program error: {}".format(stderr)
         raise RuntimeError("{}".format(msg))
 

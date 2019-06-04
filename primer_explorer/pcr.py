@@ -9,7 +9,6 @@ PrimerAndLocation = namedtuple('PrimerAndLocation', ('strand', 'seq', 'chrom_loc
 
 
 def select_primers_combinations(kmers, num_compatible_groups=10):
-    print(kmers)
     compatibility_primers_groups = get_compatible_groups_of_primers(kmers, num_compatible_groups=num_compatible_groups)
     return compatibility_primers_groups
 

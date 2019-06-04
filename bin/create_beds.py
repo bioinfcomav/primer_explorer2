@@ -2,15 +2,12 @@
 import argparse
 import pickle
 
-
 from primer_explorer.bed import write_bed
-from primer_explorer.pcr import PrimerAndLocation
 from primer_explorer.regions import GenomeRegions
 
 
 def get_pcr_products_sets(pcr_products_fhand):
     for pcr_products_set in pcr_products_fhand:
-        print(pcr_products_set)
         primers, pcr_products = pcr_products_set
         yield primers, pcr_products
 

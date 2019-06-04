@@ -10,7 +10,6 @@ BINS = 10
 
 
 def _calc_product_length(pair):
-    print(pair)
     if pair[0].chrom_location[0] != pair[1].chrom_location[0]:
         raise RuntimeError("the products doesn't have the same chrom")
     start = pair[0].chrom_location[1]
