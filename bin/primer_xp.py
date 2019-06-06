@@ -67,7 +67,8 @@ def main():
     primer_combinations = select_primers_combinations(kmers, num_compatible_groups=num_sets)
 
     product_results = get_pcr_products_in_sets(primer_combinations, kmers,
-                                               kmers_locations)
+                                               kmers_locations,
+                                               max_pcr_product_length=10000)
 
     pickle.dump(product_results, pcr_products_fhand, pickle.HIGHEST_PROTOCOL)
 

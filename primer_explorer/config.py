@@ -23,7 +23,8 @@ SHORT_PRODUCTS_CUTOFF = 0.65
 PRIMER3_CONFIG_FPATH = str(CODE_DIR / "primer3/primer3_config/") + '/'
 PRIMER3_CORE_FPATH = "primer3_core"
 
-GFF_FEATURES = ["mRNA", "exon", "five_prime_UTR", "three_prime_UTR", 'intron']
+GFF_FEATURES = ["mRNA", "exon", "five_prime_UTR", "three_prime_UTR", 'intron',
+                'gene']
 COMPLEMENTARY_BASES = {'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C', '-': '-'}
 MELTING_TEMPERATURE_THRESHOLD = 0
 MAX_COMP_END = 3

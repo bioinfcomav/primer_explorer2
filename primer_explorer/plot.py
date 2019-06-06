@@ -26,7 +26,7 @@ def _guess_output_for_matplotlib(fhand):
 
 def get_fig_and_canvas(num_rows=1, num_cols=1, figsize=None):
     if figsize is None:
-        height = 5.0 * num_rows
+        height = 5.5 * num_rows
         width = 7.5 * num_cols
         if height > 320.0:
             height = 320.0
@@ -44,7 +44,7 @@ class HistogramPlotter(object):
                  xlabel=None, ylabel=None, ylog_scale=False, ylimits=None,
                  distrib_labels=None, titles=None, xmax=None, xmin=None,
                  linestyles=None, figsize=None, xtickslabel_rotation=None,
-                 num_bins=None):
+                 num_bins=None, vlines=None):
         if plots_per_chart > 1 and kind == BAR:
             error_msg = 'if kind is BAR only one plot per chart is allowed'
             raise ValueError(error_msg)
@@ -65,7 +65,9 @@ class HistogramPlotter(object):
         axes = self._draw_plot(distrib_labels=distrib_labels, ylimits=ylimits,
                                titles=titles, xmax=xmax, xmin=xmin,
                                linestyles=linestyles, num_bins=num_bins,
-                               xtickslabel_rotation=xtickslabel_rotation)
+                               xtickslabel_rotation=xtickslabel_rotation,
+                               vlines=vlines)
+
         self.axes = axes
 
     def _get_plot_dimensions(self):
@@ -175,7 +177,7 @@ class HistogramPlotter(object):
 
     def _draw_plot(self, distrib_labels=None, titles=None, xmax=None,
                    xmin=None, linestyles=None, ylimits=None,
-                   xtickslabel_rotation=None, num_bins=None):
+                   xtickslabel_rotation=None, num_bins=None, vlines=None):
         counter_index = 0
         axes = []
         for plot_num in range(1, self.num_plots + 1):
@@ -206,6 +208,9 @@ class HistogramPlotter(object):
 
             if distrib_labels is not None:
                 axe.legend()
+            # if vlines:
+            #     axe.vlines(vlines, ymin=0, ymax=axe.get_ylim()[1], color='r')
+
             axes.append(axe)
 
         return axes
@@ -227,7 +232,8 @@ def draw_histogram_in_fhand(counter, fhand, title=None, xlabel=None, xmin=None,
 def draw_histograms(counters, fhand, distrib_labels=None, num_cols=2,
                     plots_per_chart=3, xlabel=None, ylabel=None, titles=None,
                     kind=LINE, xmax=None, xmin=None, linestyles=None,
-                    ylimits=None, ylog_scale=False, num_bins=None):
+                    ylimits=None, ylog_scale=False, num_bins=None,
+                    xtickslabel_rotation=None, vlines=None):
 
     plot_hist = HistogramPlotter(counters, xlabel=xlabel, ylabel=ylabel,
                                  xmax=xmax, xmin=xmin, titles=titles,
@@ -235,5 +241,6 @@ def draw_histograms(counters, fhand, distrib_labels=None, num_cols=2,
                                  linestyles=linestyles, ylimits=ylimits,
                                  num_cols=num_cols, ylog_scale=ylog_scale,
                                  plots_per_chart=plots_per_chart,
-                                 num_bins=num_bins)
+                                 num_bins=num_bins, vlines=vlines,
+                                 xtickslabel_rotation=xtickslabel_rotation)
     plot_hist.write_figure(fhand)

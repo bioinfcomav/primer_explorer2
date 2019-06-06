@@ -13,7 +13,7 @@ def select_primers_combinations(kmers, num_compatible_groups=10):
     return compatibility_primers_groups
 
 
-def _get_pcr_products(fwd_primers_locations, rev_primers_locations, max_pcr_product_length=1000):
+def _get_pcr_products(fwd_primers_locations, rev_primers_locations, max_pcr_product_length):
     fwd_locs = [PrimerAndLocation(0, loc.seq, loc.chrom_location, loc.is_heterochromatic) for loc in fwd_primers_locations]
     locs = fwd_locs
     rev_locs = [PrimerAndLocation(1, loc.seq, loc.chrom_location, loc.is_heterochromatic) for loc in rev_primers_locations]
@@ -23,7 +23,7 @@ def _get_pcr_products(fwd_primers_locations, rev_primers_locations, max_pcr_prod
     return pcr_products
 
 
-def get_pcr_products(kmer_locations, primers):
+def get_pcr_products(kmer_locations, primers, max_pcr_product_length=10000):
     pcr_products = {}
     for combination in combinations(primers, 2):
         fwd_primers = combination
@@ -36,7 +36,9 @@ def get_pcr_products(kmer_locations, primers):
 
         for primer in rev_primers:
             rev_primers_locations.extend(kmer_locations.get(primer, ""))
-        pcr_products[combination] = _get_pcr_products(fwd_primers_locations, rev_primers_locations)
+        pcr_products[combination] = _get_pcr_products(fwd_primers_locations,
+                                                      rev_primers_locations,
+                                                      max_pcr_product_length=max_pcr_product_length)
     return pcr_products
 
 
@@ -81,11 +83,13 @@ def count_total_products(pcr_products):
     return len(pcr_products)
 
 
-def get_pcr_products_in_sets(primer_combinations, kmers, kmers_locations):
+def get_pcr_products_in_sets(primer_combinations, kmers, kmers_locations,
+                             max_pcr_product_length):
     product_results = []
 
     for primer_combination in primer_combinations:
-        pcr_products = get_pcr_products(kmers_locations, primer_combination)
+        pcr_products = get_pcr_products(kmers_locations, primer_combination,
+                                        max_pcr_product_length=max_pcr_product_length)
         primer_group = {'primers': primer_combination,
                         'products': pcr_products}
         product_results.append(primer_group)

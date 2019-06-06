@@ -263,15 +263,21 @@ def get_total_nondimer_pcr_products(pcr_products):
     return non_dimer_pcr_products
 
 
-def filter_by_length(pcr_products, min_length=300):
+def filter_by_length(pcr_products, min_length=None, max_length=None):
     viable_products = []
     for product in pcr_products:
         fwd_primer_position = product[0].chrom_location[1]
         rev_primer_position = product[1].chrom_location[1]
-        if abs(fwd_primer_position - rev_primer_position) < min_length:
-            continue
-        else:
+        length = abs(fwd_primer_position - rev_primer_position)
+        min_ok = False
+        if (min_length is None or length >= min_length):
+            min_ok = True
+        max_ok = False
+        if (max_length is None or length <= max_length):
+            max_ok = True
+        if min_ok and max_ok:
             viable_products.append(product)
+
     return viable_products
 
 # def _filter_by_euchromatic_annotation(pcr_products, reverse=False):
@@ -313,12 +319,20 @@ def get_total_mixed_products(pcr_products):
     return mixed_products
 
 
-def get_pcr_products_counts(pcr_products):
+def get_pcr_products_counts(pcr_products, min_length, max_length):
     pcr_products_counts = Counter()
-    non_dimer_products = get_total_nondimer_pcr_products(pcr_products)
-    pcr_products_counts["total_products"] = len(non_dimer_products)
-    viable_products = filter_by_length(non_dimer_products)
-    pcr_products_counts["viable_products"] = len(viable_products)
+    total_products = get_total_nondimer_pcr_products(pcr_products)
+    pcr_products_counts["total_products"] = len(total_products)
+
+    viable_products = filter_by_length(total_products, min_length, max_length)
+    pcr_products_counts["viable_products"] = {'min': min_length,
+                                              'max': max_length,
+                                              'count': len(viable_products)}
+    short_product_count = filter_by_length(total_products, max_length=min_length)
+    pcr_products_counts["filtered_by_max_length"] = {'max': min_length,
+                                                     'count': len(short_product_count)}
+    pcr_products_counts['amplificable_products'] = len(viable_products) + len(short_product_count)
+
     euchromatin_products = get_total_euchromatic_products(viable_products)
     pcr_products_counts["euchromatin_products"] = len(euchromatin_products)
     heterochromatin_products = get_total_heterochromatic_products(viable_products)
@@ -331,13 +345,16 @@ def get_pcr_products_counts(pcr_products):
     return pcr_products_counts
 
 
-def get_stats_by_pair_in_sets(products_sets):
+def get_stats_by_pair_in_sets(products_sets, min_length=100, max_length=1000):
     stats = {}
     for set_index, set_info in enumerate(products_sets):
         stats[set_index] = {'primers': set_info['primers'],
                             'stats': {}}
-        for pair, pcr_products in set_info['products'].items():
-            counts = get_pcr_products_counts(pcr_products)
+        for pair in sorted(set_info['products'].keys()):
+            pcr_products = set_info['products'][pair]
+            counts = get_pcr_products_counts(pcr_products,
+                                             min_length=min_length,
+                                             max_length=max_length)
             stats[set_index]['stats'][pair] = counts
     return stats
 
