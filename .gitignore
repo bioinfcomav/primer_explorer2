@@ -1,3 +1,5 @@
 *.pyc
 .project
 .pydevproject
+.vscode/settings.json
+primer_explorer/.code-workspace.code-workspace
