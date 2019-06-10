@@ -1,5 +1,6 @@
 from collections import Counter
 
+
 from primer_explorer.primer3.primer3 import reverse_complement
 
 LABELS = {'title': 'histogram', 'xlabel': 'values',
@@ -7,6 +8,17 @@ LABELS = {'title': 'histogram', 'xlabel': 'values',
           'maximum': 'maximum', 'average': 'average',
           'variance': 'variance', 'sum': 'sum',
           'items': 'items', 'quartiles': 'quartiles'}
+
+PERCENTAGE_OF_SEQUENCIABLE_NUCLEOTIDES = "percentage_sequenciable_nucleotides"
+ADJUSTED_PERCENTAGE_OF_SEQUENCIABLE_NUCLEOTIDES = "adjusted_percentage_sequenciable_nucleotides"
+NUM_OF_POSSIBLE_PRODUCTS_10000 = "num_possible_products_10000"
+NUM_OF_POSSIBLE_PRODUCTS_700 = "num_possible_products_700"
+NUM_SEQUENCIABLE_PRODUCTS = "num_sequenciable_products"
+NUM_SHORT_PRODUCTS = "num_short_products"
+NUM_UNION_SITES = "num_union_sites"
+NUM_REPETITIVE_REPETITIVE_PRODUCTS = "num_repetitive-repetitive_products"
+NUM_UNIQUE_UNIQUE_PRODUCTS = "num_unique-unique_products"
+NUM_UNIQUE_REPETITIVE_PRODUCTS = "num_unique-repetitive_products"
 
 
 class IntCounter(Counter):
@@ -280,18 +292,15 @@ def filter_by_length(pcr_products, min_length=None, max_length=None):
 
     return viable_products
 
-# def _filter_by_euchromatic_annotation(pcr_products, reverse=False):
-#     products = []
-#     for product in pcr_products:
-#         if ((reverse and is_full_heterochromatic(product)) or
-#                 (not reverse and not is_full_heterochromatic(product))):
-#             products.append(product)
-#
-#     return products
-#
-#
-# def is_full_heterochromatic(product):
-#     return all(not primer.is_heterochromatic for primer in product)
+
+def get_union_sites_for_primers(pcr_products):
+    union_sites = Counter()
+    for product in pcr_products:
+        fwd_primer = product[0].seq
+        rev_primer = product[1].seq
+        union_sites[fwd_primer] += 1
+        union_sites[rev_primer] += 1
+    return union_sites
 
 
 def get_total_euchromatic_products(pcr_products):
@@ -319,29 +328,33 @@ def get_total_mixed_products(pcr_products):
     return mixed_products
 
 
-def get_pcr_products_counts(pcr_products, min_length, max_length):
+def get_pcr_products_counts(pcr_products, min_length, max_length, genome_length):
     pcr_products_counts = Counter()
     total_products = get_total_nondimer_pcr_products(pcr_products)
-    pcr_products_counts["total_products"] = len(total_products)
+    pcr_products_counts[NUM_OF_POSSIBLE_PRODUCTS_10000] = len(total_products)
+    union_sites = get_union_sites_for_primers(pcr_products)
+    pcr_products_counts[NUM_UNION_SITES] = union_sites
 
-    viable_products = filter_by_length(total_products, min_length, max_length)
-    pcr_products_counts["viable_products"] = {'min': min_length,
-                                              'max': max_length,
-                                              'count': len(viable_products)}
+    sequenciable_products = filter_by_length(total_products, min_length, max_length)
+    pcr_products_counts[NUM_SEQUENCIABLE_PRODUCTS] = {'min': min_length,
+                                                      'max': max_length,
+                                                      'count': len(sequenciable_products)}
     short_product_count = filter_by_length(total_products, max_length=min_length)
-    pcr_products_counts["filtered_by_max_length"] = {'max': min_length,
-                                                     'count': len(short_product_count)}
-    pcr_products_counts['amplificable_products'] = len(viable_products) + len(short_product_count)
-
-    euchromatin_products = get_total_euchromatic_products(viable_products)
-    pcr_products_counts["euchromatin_products"] = len(euchromatin_products)
-    heterochromatin_products = get_total_heterochromatic_products(viable_products)
-    pcr_products_counts["heterochromatin_products"] = len(heterochromatin_products)
-    mixed_products = get_total_mixed_products(viable_products)
-    pcr_products_counts["mixed_products"] = len(mixed_products)
-    pcr_products_counts["euchromatin_nucleotides"] = get_total_number_of_nucleotides_in_pcr_products(euchromatin_products)
-    pcr_products_counts["heterochromatin_nucleotides"] = get_total_number_of_nucleotides_in_pcr_products(heterochromatin_products)
-    pcr_products_counts["mixed_nucleotides"] = get_total_number_of_nucleotides_in_pcr_products(mixed_products)
+    pcr_products_counts[NUM_SHORT_PRODUCTS] = {'max': min_length,
+                                               'count': len(short_product_count)}
+    pcr_products_counts[NUM_OF_POSSIBLE_PRODUCTS_700] = len(sequenciable_products) + len(short_product_count)
+    euchromatin_products = get_total_euchromatic_products(sequenciable_products)
+    pcr_products_counts[NUM_UNIQUE_UNIQUE_PRODUCTS] = len(euchromatin_products)
+    heterochromatin_products = get_total_heterochromatic_products(sequenciable_products)
+    pcr_products_counts[NUM_REPETITIVE_REPETITIVE_PRODUCTS] = len(heterochromatin_products)
+    mixed_products = get_total_mixed_products(sequenciable_products)
+    pcr_products_counts[NUM_UNIQUE_REPETITIVE_PRODUCTS] = len(mixed_products)
+    # TODO JUNTO BREADTH
+    pcr_products_counts[PERCENTAGE_OF_SEQUENCIABLE_NUCLEOTIDES] = get_pcr_nucleotide_count(sequenciable_products,
+                                                                                           genome_length)
+    pcr_products_counts[ADJUSTED_PERCENTAGE_OF_SEQUENCIABLE_NUCLEOTIDES] = get_pcr_nucleotide_count(sequenciable_products,
+                                                                                                    genome_length,
+                                                                                                    scale_to_illumina_sequences=True)
     return pcr_products_counts
 
 
@@ -359,11 +372,15 @@ def get_stats_by_pair_in_sets(products_sets, min_length=100, max_length=1000):
     return stats
 
 
-def get_total_number_of_nucleotides_in_pcr_products(pcr_products):
+def get_pcr_nucleotide_count(pcr_products, genome_length,
+                             scale_to_illumina_sequences=False,
+                             illumina_min_pair_length=300):
     nucleotides = 0
     for product in pcr_products:
-        fwd_primer_position = product[0].chrom_location[1]
-        rev_primer_position = product[1].chrom_location[1]
-        nucleotide_distance = abs(fwd_primer_position - rev_primer_position)
-        nucleotides += nucleotide_distance
-    return nucleotides
+        start = product[0].chrom_location[1]
+        end = product[1].chrom_location[1]
+        distance = abs(start - end)
+        if scale_to_illumina_sequences and distance > illumina_min_pair_length:
+            distance = illumina_min_pair_length
+        nucleotides += distance
+    return float(nucleotides / genome_length)
