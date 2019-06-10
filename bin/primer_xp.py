@@ -7,6 +7,8 @@ from pathlib import Path
 from primer_explorer.kmer import get_kmers
 from primer_explorer.pcr import (select_primers_combinations,
                                  get_pcr_products_in_sets)
+from primer_explorer.stats import get_stats_by_pair_in_sets
+from primer_explorer.report import write_stats_in_excel
 
 
 def parse_arguments():
@@ -21,13 +23,16 @@ def parse_arguments():
                         help='Size of the kmers to look for')
     parser.add_argument('-c', '--cache_dir', help='cache dir',
                         default='./cache')
-    parser.add_argument('-o', '--pcr_products', required=True,
-                        help='Path to write pcr_products result',
+    parser.add_argument('-d', '--pcr_products', required=True,
+                        help='Path to write pcr_products database in pickle format',
+                        type=argparse.FileType('wb'))
+    parser.add_argument('-o', '--report', required=True,
+                        help='Path to write report in excel format',
                         type=argparse.FileType('wb'))
     parser.add_argument('-k', '--top_kmers', help='number of top kmers to use',
                         type=int, default=1000)
     parser.add_argument('-m', '--num_sets', help="number of sets of primers to calculate",
-                        type=int, default=10)
+                        type=int, default=3)
     return parser
 
 
@@ -41,11 +46,12 @@ def get_args():
     products_fhand = args.pcr_products
     top_kmers = args.top_kmers
     num_sets = args.num_sets
+    report_fhand = args.report
 
     return {'genome_fhand': genome_fhand, 'regions_fhand': regions_fhand,
             'kmer_size': kmer_size, 'cache_dir': cache_dir,
             'products_fhand': products_fhand, 'top_kmers': top_kmers,
-            'num_sets': num_sets}
+            'num_sets': num_sets, 'report_fhand': report_fhand}
 
 
 def main():
@@ -56,6 +62,8 @@ def main():
     cache_dir = Path(args['cache_dir'])
     top_kmers = args['top_kmers']
     num_sets = args['num_sets']
+    report_fhand = args['report_fhand']
+
     if not cache_dir.exists():
         cache_dir.mkdir(exist_ok=True)
 
@@ -71,6 +79,10 @@ def main():
                                                max_pcr_product_length=10000)
 
     pickle.dump(product_results, pcr_products_fhand, pickle.HIGHEST_PROTOCOL)
+
+    stats = get_stats_by_pair_in_sets(product_results)
+
+    write_stats_in_excel(report_fhand.name, stats)
 
 
 if __name__ == '__main__':
