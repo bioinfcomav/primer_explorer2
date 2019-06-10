@@ -117,7 +117,6 @@ def write_stats_in_excel(out_fpath, stats):
             sheet = workbook.create_sheet(title='sheet {}'.format(set_index + 1))
         write_set_stats_in_sheet(primer_set_stats, sheet)
         workbook.save(out_fpath)
-        break
 
 
 def write_set_stats_in_sheet(primer_set_stats, sheet):
