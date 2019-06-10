@@ -18,6 +18,8 @@ NUM_UNION_SITES = "num_union_sites"
 NUM_REPETITIVE_REPETITIVE_PRODUCTS = "num_repetitive-repetitive_products"
 NUM_UNIQUE_UNIQUE_PRODUCTS = "num_unique-unique_products"
 NUM_UNIQUE_REPETITIVE_PRODUCTS = "num_unique-repetitive_products"
+NUM_UNION_SITES_P1 = "num_union_sites_primer_1"
+NUM_UNION_SITES_P2 = "num_union_sites_primer_2"
 
 
 class IntCounter(Counter):
@@ -299,7 +301,8 @@ def get_union_sites_for_primers(pcr_products):
         rev_primer = product[1].seq
         union_sites[fwd_primer] += 1
         union_sites[rev_primer] += 1
-    return union_sites
+    return {'primer1': union_sites[fwd_primer],
+            'primer2': union_sites[rev_primer]}
 
 
 def get_total_euchromatic_products(pcr_products):
@@ -332,7 +335,9 @@ def get_pcr_products_counts(pcr_products, min_length, max_length, genome_length)
     total_products = get_total_nondimer_pcr_products(pcr_products)
     pcr_products_counts[NUM_OF_POSSIBLE_PRODUCTS_10000] = len(total_products)
     union_sites = get_union_sites_for_primers(pcr_products)
-    pcr_products_counts[NUM_UNION_SITES] = union_sites
+
+    pcr_products_counts[NUM_UNION_SITES_P1] = union_sites['primer1']
+    pcr_products_counts[NUM_UNION_SITES_P2] = union_sites['primer2']
 
     sequenciable_products = filter_by_length(total_products, min_length, max_length)
     pcr_products_counts[NUM_SEQUENCIABLE_PRODUCTS] = {'min': min_length,
