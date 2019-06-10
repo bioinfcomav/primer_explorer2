@@ -1,5 +1,13 @@
 from primer_explorer.config import SHORT_PRODUCTS_CUTOFF
 
+from openpyxl import Workbook
+from _collections import OrderedDict
+from primer_explorer.stats import NUM_SEQUENCIABLE_PRODUCTS
+
+from openpyxl.styles import colors
+from openpyxl.styles import Font, Color
+from openpyxl.utils.cell import get_column_letter
+
 
 def generate_pair_stats(primer_pair, count, short_products_cutoff=SHORT_PRODUCTS_CUTOFF):
     report = []
@@ -65,3 +73,71 @@ def write_gff_report(gff_results, output_fhand):
     output_fhand.write("\n".join(report).encode())
     output_fhand.flush()
     output_fhand.close()
+
+
+def write_stats_in_excel(out_fpath, stats):
+    workbook = Workbook()
+    for set_index, primer_set_stats in stats.items():
+        if set_index == 0:
+            sheet = workbook.active
+        else:
+            sheet = workbook.create_sheet(titel='sheet {}'.format(set_index + 1))
+        write_set_stats_in_sheet(primer_set_stats, sheet)
+        workbook.save(out_fpath)
+        break
+
+
+def write_set_stats_in_sheet(primer_set_stats, sheet):
+    stats = primer_set_stats['stats']
+    first = list(stats.values())[0]
+    min_sequenciable = first[NUM_SEQUENCIABLE_PRODUCTS]['min']
+    max_sequenciable = first[NUM_SEQUENCIABLE_PRODUCTS]['max']
+    primers = primer_set_stats['primers']
+    labels = OrderedDict([(index + 1, primer) for index, primer in enumerate(primers)])
+    table_label = 'Number of sequenciable products between {}-{} bp'
+    sheet['A1'] = table_label.format(min_sequenciable, max_sequenciable)
+
+    for index, (primer_index, primer) in enumerate(labels.items()):
+        col_index = index + 3
+#         print(col_index)
+#         print(primer_index)
+#         print(primer)
+        cell = sheet.cell(column=col_index, row=2, value='Primer_{}'.format(primer_index))
+        font = Font(color=colors.BLACK, bold=True)
+        cell.font = font
+        sheet.cell(column=col_index, row=3, value=primer)
+
+        row_index = index + 4
+        cell = sheet.cell(column=1, row=row_index, value='Primer_{}'.format(primer_index))
+        font = Font(color=colors.BLACK, bold=True)
+        cell.font = font
+        sheet.cell(column=2, row=row_index, value=primer)
+
+    already_done = []
+    used_combinations = []
+    for index1, primer1 in labels.items():
+        for index2, primer2 in labels.items():
+            if index1 == index2:
+                continue
+            if (index1, index2) in already_done:
+                continue
+            if (index2, index1) in already_done:
+                continue
+            already_done.append((index1, index2))
+            already_done.append((index2, index1))
+
+            counts = stats.get((primer1, primer2), None)
+            if counts is None:
+                counts = stats.get((primer2, primer1), None)
+                used_combinations.append((primer2, primer1))
+            else:
+                used_combinations.append((primer1, primer2))
+            sequenciable_products = counts[NUM_SEQUENCIABLE_PRODUCTS]['count']
+
+            print(index1, index2, sequenciable_products)
+            sheet.cell(row=index1 + 3, column=index2 + 2, value=sequenciable_products)
+
+#         sheet.cell()
+
+    for column_index in range(12):
+        sheet.column_dimensions[get_column_letter(column_index + 1)].width = 11

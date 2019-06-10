@@ -1,6 +1,5 @@
 from collections import Counter
 
-
 from primer_explorer.primer3.primer3 import reverse_complement
 
 LABELS = {'title': 'histogram', 'xlabel': 'values',
@@ -350,25 +349,34 @@ def get_pcr_products_counts(pcr_products, min_length, max_length, genome_length)
     mixed_products = get_total_mixed_products(sequenciable_products)
     pcr_products_counts[NUM_UNIQUE_REPETITIVE_PRODUCTS] = len(mixed_products)
     # TODO JUNTO BREADTH
-    pcr_products_counts[PERCENTAGE_OF_SEQUENCIABLE_NUCLEOTIDES] = get_pcr_nucleotide_count(sequenciable_products,
-                                                                                           genome_length)
-    pcr_products_counts[ADJUSTED_PERCENTAGE_OF_SEQUENCIABLE_NUCLEOTIDES] = get_pcr_nucleotide_count(sequenciable_products,
-                                                                                                    genome_length,
-                                                                                                    scale_to_illumina_sequences=True)
+    if genome_length:
+        perc_secuenciable_nucls = get_pcr_nucleotide_count(sequenciable_products, genome_length)
+        adjusted_perct_of_sequenciable_nucleotides = get_pcr_nucleotide_count(sequenciable_products,
+                                                                              genome_length,
+                                                                              scale_to_illumina_sequences=True)
+    else:
+        perc_secuenciable_nucls = 0
+        adjusted_perct_of_sequenciable_nucleotides = 0
+
+    pcr_products_counts[PERCENTAGE_OF_SEQUENCIABLE_NUCLEOTIDES] = perc_secuenciable_nucls
+    pcr_products_counts[ADJUSTED_PERCENTAGE_OF_SEQUENCIABLE_NUCLEOTIDES] = adjusted_perct_of_sequenciable_nucleotides
     return pcr_products_counts
 
 
-def get_stats_by_pair_in_sets(products_sets, min_length=100, max_length=1000):
+def get_stats_by_pair_in_sets(products_sets, min_length=100, max_length=1000,
+                              genome_length=None):
     stats = {}
     for set_index, set_info in enumerate(products_sets):
-        stats[set_index] = {'primers': set_info['primers'],
+        stats[set_index] = {'primers': [p.decode() for p in set_info['primers']],
                             'stats': {}}
         for pair in sorted(set_info['products'].keys()):
             pcr_products = set_info['products'][pair]
             counts = get_pcr_products_counts(pcr_products,
                                              min_length=min_length,
-                                             max_length=max_length)
-            stats[set_index]['stats'][pair] = counts
+                                             max_length=max_length,
+                                             genome_length=genome_length)
+            decoded_pair = tuple([p.decode() for p in pair])
+            stats[set_index]['stats'][decoded_pair] = counts
     return stats
 
 
