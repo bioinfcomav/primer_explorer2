@@ -148,7 +148,7 @@ def write_set_stats_in_sheet(primer_set_stats, sheet):
         sheet.cell(column=2, row=row_index, value=primer)
 
     already_done = []
-    used_combinations = {}
+    used_combinations = OrderedDict()
     for index1, primer1 in labels.items():
         for index2, primer2 in labels.items():
             if index1 == index2:
