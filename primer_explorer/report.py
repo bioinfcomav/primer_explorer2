@@ -31,7 +31,7 @@ LABELS_TO_REPORT = OrderedDict([
                                  'label': 'Num of sequentiable products(100-700)'}),
     (NUM_UNIQUE_UNIQUE_PRODUCTS, {'code': 'NUUP',
                                   'label': 'Num of unique unique products (100-700)'}),
-    (NUM_REPETITIVE_REPETITIVE_PRODUCTS, {'code': 'NUUP',
+    (NUM_REPETITIVE_REPETITIVE_PRODUCTS, {'code': 'NRRP',
                                           'label': 'Num of repetitive repetitive products (100-700)'}),
     (NUM_UNIQUE_REPETITIVE_PRODUCTS, {'code': 'NURP',
                                       'label': 'Num of unique repetitive products (100-700)'}),
