@@ -63,17 +63,17 @@ def main():
 
     pcr_products = pickle.load(pcr_products_fhand)
 
-    stats = get_stats(pcr_products, selected_primers, num_sets_to_represent)
+    stats = get_product_lengths_by_pair(pcr_products, selected_primers, num_sets_to_represent)
     titles = []
     counters = []
 
     for pair, lengths in stats.items():
         title = "PCR length products for pair {}, {} (all)"
-        titles.append(title.format(pair[0].decode(), pair[1].decode()))
+        titles.append(title.format(pair[0], pair[1]))
         counters.append(IntCounter(lengths))
 
         title = "PCR length products for pair {}, {} (max 1000 lenth)"
-        titles.append(title.format(pair[0].decode(), pair[1].decode()))
+        titles.append(title.format(pair[0], pair[1]))
         lengths = [len_ for len_ in lengths if len_ <= 1000]
         counters.append(IntCounter(lengths))
     # xlabel="Product_size"
@@ -84,7 +84,7 @@ def main():
                     xtickslabel_rotation=60, vlines=100)
 
 
-def get_stats(pcr_products, selected_primers, num_sets_to_represent):
+def get_product_lengths_by_pair(pcr_products, selected_primers, num_sets_to_represent):
     stats = {}
 
     for set_index in range(num_sets_to_represent):
@@ -95,6 +95,7 @@ def get_stats(pcr_products, selected_primers, num_sets_to_represent):
             combinations = primer_set.keys()
         combinations = sorted(combinations)
         for combination in combinations:
+            combination = [p.decode() for p in combination]
             if combination in stats:
                 continue
             products = primer_set.get(combination, None)

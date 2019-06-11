@@ -52,3 +52,23 @@ class GenomeRegion:
         if self.start >= region2.stop:
             return False
         return True
+
+
+def write_primer_regions_in_bed_format(product_results, out_dir):
+    done_pairs = []
+    for pcr_products_set in product_results:
+        for pair, pcr_products in pcr_products_set['products'].items():
+            if pair in done_pairs:
+                continue
+            out_path = out_dir / "{}-{}.bed".format(pair[0].decode(),
+                                                    pair[1].decode())
+            with out_path.open('w') as out_fhand:
+                write_products_in_bed_format(pcr_products, out_fhand)
+                done_pairs.append(pair)
+
+
+def write_products_in_bed_format(pcr_products, out_fhand):
+    for region in GenomeRegions(pcr_products=pcr_products):
+        line = "{}\t{}\t{}\n".format(region.chrom.decode(), region.start,
+                                     region.stop)
+        out_fhand.write(line)

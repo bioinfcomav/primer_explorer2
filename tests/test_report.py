@@ -21,9 +21,10 @@ class TestReport(unittest.TestCase):
 
     def test_excel_write(self):
         products_path = TEST_DATA_PATHDIR / 'pcr_products.pickle'
-        pcr_products_sets = pickle.load(products_path.open('rb'))
-        stats = get_stats_by_pair_in_sets(pcr_products_sets)
-        write_stats_in_excel('/tmp/eee.xlsx', stats)
+        with products_path.open('rb') as fhand:
+            pcr_products_sets = pickle.load(fhand)
+            stats = get_stats_by_pair_in_sets(pcr_products_sets)
+            write_stats_in_excel('/tmp/eee.xlsx', stats)
 
 
 if __name__ == "__main__":

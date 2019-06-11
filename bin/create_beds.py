@@ -2,8 +2,8 @@
 import argparse
 import pickle
 
-from primer_explorer.bed import write_bed
-from primer_explorer.regions import GenomeRegions
+from pathlib import Path
+from primer_explorer.regions import write_primer_regions_in_bed_format
 
 
 def get_pcr_products_sets(pcr_products_fhand):
@@ -16,7 +16,7 @@ def parse_arguments():
     parser = argparse.ArgumentParser(description="Create bed files for pcr_products")
     parser.add_argument('-p', '--pcr_products', help='path to pcr products',
                         type=argparse.FileType('rb'), required=True)
-    parser.add_argument('-o', '--out_bed', help='directory to output beds',
+    parser.add_argument('-o', '--out_dir', help='directory to output beds',
                         required=True)
     return parser
 
@@ -25,19 +25,18 @@ def get_args():
     parser = parse_arguments()
     args = parser.parse_args()
     pcr_products_fpath = args.pcr_products
-    out_fpath = args.out_bed
-    return {'pcr_products_fpath': pcr_products_fpath,
-            'out_fpath': out_fpath}
+    out_dir = args.out_dir
+    return {'pcr_products_fpath': pcr_products_fpath, 'out_dir': out_dir}
 
 
 def main():
     args = get_args()
     pcr_products_sets = pickle.load(args['pcr_products_fpath'])
-    out_fdir = args['out_fpath']
-    for pcr_products_set in pcr_products_sets:
-        for pair, pcr_products in pcr_products_set['products'].items():
-            pcr_products_regions = GenomeRegions(pcr_products=pcr_products)
-            write_bed(pair, pcr_products_regions, out_fdir)
+    out_dir = Path(args['out_dir'])
+    if not out_dir.exists():
+        out_dir.mkdir(exist_ok=True)
+
+    write_primer_regions_in_bed_format(pcr_products_sets, out_dir)
 
 
 if __name__ == "__main__":

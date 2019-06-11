@@ -9,6 +9,7 @@ from primer_explorer.pcr import (select_primers_combinations,
                                  get_pcr_products_in_sets)
 from primer_explorer.stats import get_stats_by_pair_in_sets
 from primer_explorer.report import write_stats_in_excel
+from primer_explorer.regions import write_primer_regions_in_bed_format
 
 
 def parse_arguments():
@@ -29,10 +30,15 @@ def parse_arguments():
     parser.add_argument('-o', '--report', required=True,
                         help='Path to write report in excel format',
                         type=argparse.FileType('wb'))
+    msg = "Director to write bed formated product results for each primer pair"
+    parser.add_argument('-b', '--bed_dir', help=msg,
+                        type=int, default='./beds')
+
     parser.add_argument('-k', '--top_kmers', help='number of top kmers to use',
                         type=int, default=1000)
     parser.add_argument('-m', '--num_sets', help="number of sets of primers to calculate",
                         type=int, default=3)
+
     return parser
 
 
@@ -47,11 +53,12 @@ def get_args():
     top_kmers = args.top_kmers
     num_sets = args.num_sets
     report_fhand = args.report
-
+    bed_dir = args.bed_dir
     return {'genome_fhand': genome_fhand, 'regions_fhand': regions_fhand,
             'kmer_size': kmer_size, 'cache_dir': cache_dir,
             'products_fhand': products_fhand, 'top_kmers': top_kmers,
-            'num_sets': num_sets, 'report_fhand': report_fhand}
+            'num_sets': num_sets, 'report_fhand': report_fhand,
+            'bed_dir': bed_dir}
 
 
 def main():
@@ -63,9 +70,13 @@ def main():
     top_kmers = args['top_kmers']
     num_sets = args['num_sets']
     report_fhand = args['report_fhand']
+    bed_out_dir = Path(args['bed_dir'])
 
     if not cache_dir.exists():
         cache_dir.mkdir(exist_ok=True)
+
+    if not bed_out_dir.exists():
+        bed_out_dir.mkdir(exist_ok=True)
 
     pcr_products_fhand = args['products_fhand']
 
@@ -83,6 +94,8 @@ def main():
     stats = get_stats_by_pair_in_sets(product_results)
 
     write_stats_in_excel(report_fhand.name, stats)
+
+    write_primer_regions_in_bed_format(product_results, bed_out_dir)
 
 
 if __name__ == '__main__':
