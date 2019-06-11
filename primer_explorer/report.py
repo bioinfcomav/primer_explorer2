@@ -116,21 +116,27 @@ def write_stats_in_excel(out_fpath, stats):
         else:
             sheet = workbook.create_sheet(title='sheet {}'.format(set_index + 1))
         write_set_stats_in_sheet(primer_set_stats, sheet)
-        workbook.save(out_fpath)
+    workbook.save(out_fpath)
 
 
 def write_set_stats_in_sheet(primer_set_stats, sheet):
     stats = primer_set_stats['stats']
-    first = list(stats.values())[0]
-    min_sequenciable = first[NUM_SEQUENCIABLE_PRODUCTS]['min']
-    max_sequenciable = first[NUM_SEQUENCIABLE_PRODUCTS]['max']
     primers = primer_set_stats['primers']
     labels = OrderedDict([(index + 1, primer) for index, primer in enumerate(primers)])
-    table_label = 'Number of sequenciable products between {}-{} bp'
-    sheet['A1'] = table_label.format(min_sequenciable, max_sequenciable)
-    sheet['G1'] = 'Cells in red: Short products are more than 10% of amplificable'
-    sheet['G1'].font = Font(color=colors.RED)
 
+    _write_header(sheet, stats)
+    _write_legend(sheet)
+    used_combinations = _write_main_table(sheet, labels, stats)
+
+    _write_detailed_stats(sheet, stats, used_combinations)
+
+    for column_index in range(12):
+        sheet.column_dimensions[get_column_letter(column_index + 1)].width = 11
+
+    sheet.freeze_panes = sheet['A17']
+
+
+def _write_main_table(sheet, labels, stats):
     for index, (primer_index, primer) in enumerate(labels.items()):
         col_index = index + 3
 #         print(col_index)
@@ -173,19 +179,11 @@ def write_set_stats_in_sheet(primer_set_stats, sheet):
             ratio_secuenciable_products = num_sequenciable_products / counts[NUM_OF_POSSIBLE_PRODUCTS_700]
             if ratio_secuenciable_products < 0.90:
                 cell.font = Font(color=colors.RED)
-
-    write_legend(sheet)
-
-    write_detailed_stats(sheet, stats, used_combinations)
-
-    for column_index in range(12):
-        sheet.column_dimensions[get_column_letter(column_index + 1)].width = 11
-
-    sheet.freeze_panes = sheet['A17']
+    return used_combinations
 
 
-def write_detailed_stats(sheet, stats, used_combinations, detail_row_index_start=16,
-                         detail_column_index_start=1):
+def _write_detailed_stats(sheet, stats, used_combinations, detail_row_index_start=16,
+                          detail_column_index_start=1):
     for index, labels in enumerate(LABELS_TO_REPORT.values()):
         code = labels['code']
         sheet.cell(row=detail_row_index_start, column=index + 2, value=code)
@@ -207,10 +205,23 @@ def write_detailed_stats(sheet, stats, used_combinations, detail_row_index_start
 #         print(primers, indexes)
 
 
-def write_legend(sheet, code_column_index=15, label_column_index=16):
-    sheet.cell(row=2, column=code_column_index, value='LEGEND')
-    sheet.cell(row=3, column=code_column_index, value='Code')
-    sheet.cell(row=3, column=label_column_index, value='Description')
+def _write_header(sheet, stats):
+    first = list(stats.values())[0]
+    min_sequenciable = first[NUM_SEQUENCIABLE_PRODUCTS]['min']
+    max_sequenciable = first[NUM_SEQUENCIABLE_PRODUCTS]['max']
+
+    table_label = 'Number of sequenciable products between {}-{} bp'
+    sheet['A1'] = table_label.format(min_sequenciable, max_sequenciable)
+    sheet.merge_cells('A1:E1')
+    sheet['G1'] = 'Cells in red: Short products are more than 10% of amplificable'
+    sheet['G1'].font = Font(color=colors.RED)
+    sheet.merge_cells('G1:K1')
+
+
+def _write_legend(sheet, code_column_index=15, label_column_index=16, row_start=2):
+    sheet.cell(row=row_start, column=code_column_index, value='LEGEND')
+    sheet.cell(row=row_start + 1, column=code_column_index, value='Code')
+    sheet.cell(row=row_start + 1, column=label_column_index, value='Description')
 
     for index, label in enumerate(LABELS_TO_REPORT.values()):
         sheet.cell(row=index + 4, column=code_column_index, value=label['code'])
