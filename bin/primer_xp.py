@@ -19,7 +19,7 @@ def parse_arguments():
     parser.add_argument('-r', '--heterochromatin_regions',
                         help='Path to bed file with heterochromatin',
                         type=argparse.FileType('rb'))
-    parser.add_argument('-s', '--kmer_size', type=int, default=8,
+    parser.add_argument('-k', '--kmer_size', type=int, default=8,
                         help='Size of the kmers to look for')
     parser.add_argument('-c', '--cache_dir', help='cache dir',
                         default='./cache')
@@ -29,11 +29,8 @@ def parse_arguments():
     parser.add_argument('-o', '--report', required=True,
                         help='Path to write report in excel format',
                         type=argparse.FileType('wb'))
-    msg = "Director to write bed formated product results for each primer pair"
-    parser.add_argument('-b', '--bed_dir', help=msg,
-                        type=int, default='./beds')
 
-    parser.add_argument('-k', '--top_kmers', help='number of top kmers to use',
+    parser.add_argument('-t', '--top_kmers', help='number of top kmers to use',
                         type=int, default=1000)
     parser.add_argument('-m', '--num_sets', help="number of sets of primers to calculate",
                         type=int, default=3)
@@ -52,12 +49,10 @@ def get_args():
     top_kmers = args.top_kmers
     num_sets = args.num_sets
     report_fhand = args.report
-    bed_dir = args.bed_dir
     return {'genome_fhand': genome_fhand, 'regions_fhand': regions_fhand,
             'kmer_size': kmer_size, 'cache_dir': cache_dir,
             'products_fhand': products_fhand, 'top_kmers': top_kmers,
-            'num_sets': num_sets, 'report_fhand': report_fhand,
-            'bed_dir': bed_dir}
+            'num_sets': num_sets, 'report_fhand': report_fhand}
 
 
 def main():
@@ -69,13 +64,9 @@ def main():
     top_kmers = args['top_kmers']
     num_sets = args['num_sets']
     report_fhand = args['report_fhand']
-    bed_out_dir = Path(args['bed_dir'])
 
     if not cache_dir.exists():
         cache_dir.mkdir(exist_ok=True)
-
-    if not bed_out_dir.exists():
-        bed_out_dir.mkdir(exist_ok=True)
 
     pcr_products_fhand = args['products_fhand']
 
