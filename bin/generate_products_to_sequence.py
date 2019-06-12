@@ -18,8 +18,9 @@ def parse_arguments():
                         type=argparse.FileType('rb'), required=True)
     parser.add_argument('-o', '--out_dir', help='directory to output beds',
                         required=True)
-    msg = 'Size of the read to generate regions. Depends on sequence technology you want to predict',
-    parser.add_argument('-r', '--read_size', help=msg, required=True)
+    msg = 'Size of the read to generate regions. Depends on sequence technology you want to predict'
+    parser.add_argument('-r', '--read_size', help=msg, required=True,
+                        type=int)
     return parser
 
 
