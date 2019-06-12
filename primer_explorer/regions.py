@@ -1,3 +1,4 @@
+from primer_explorer.pcr import pcr_products_to_regions
 
 
 class GenomeRegions:
@@ -54,7 +55,10 @@ class GenomeRegion:
         return True
 
 
-def write_primer_regions_in_bed_format(product_results, out_dir):
+def write_primer_regions_in_bed_format(product_results, out_dir,
+                                       min_product_length=100,
+                                       max_product_length=700,
+                                       read_length=100):
     done_pairs = []
     for pcr_products_set in product_results:
         for pair, pcr_products in pcr_products_set['products'].items():
@@ -63,12 +67,6 @@ def write_primer_regions_in_bed_format(product_results, out_dir):
             out_path = out_dir / "{}-{}.bed".format(pair[0].decode(),
                                                     pair[1].decode())
             with out_path.open('w') as out_fhand:
-                write_products_in_bed_format(pcr_products, out_fhand)
-                done_pairs.append(pair)
-
-
-def write_products_in_bed_format(pcr_products, out_fhand):
-    for region in GenomeRegions(pcr_products=pcr_products):
-        line = "{}\t{}\t{}\n".format(region.chrom.decode(), region.start,
-                                     region.stop)
-        out_fhand.write(line)
+                lines = pcr_products_to_regions(pcr_products, min_product_length,
+                                                max_product_length, read_length)
+                out_fhand.write("\n".join(lines))

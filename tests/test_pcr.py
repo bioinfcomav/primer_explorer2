@@ -1,7 +1,11 @@
 import unittest
+from pathlib import Path
 
-from primer_explorer.pcr import (get_pcr_products, PrimerAndLocation)
+import primer_explorer
+from primer_explorer.pcr import get_pcr_products, PrimerAndLocation
 from primer_explorer.kmer import KmerAndLocation
+
+TEST_DATA_PATHDIR = Path(primer_explorer.__file__).parent.parent.joinpath('tests').joinpath('data')
 
 
 class TestPcrProducts(unittest.TestCase):
@@ -19,13 +23,9 @@ class TestPcrProducts(unittest.TestCase):
         primer_combination = [b'GGTAGGAT', b'GTAGGGCA', b'GATGGTAG']
         pcr_products = get_pcr_products(kmer_locations, primer_combination)
         assert pcr_products == {(b'GGTAGGAT', b'GTAGGGCA'): [(PrimerAndLocation(strand=0, seq=b'GGTAGGAT', chrom_location=(b'chrom1', 0), is_heterochromatic=False),
-                                                              PrimerAndLocation(strand=1, seq=b'ATCCTACC', chrom_location=(b'chrom1', 1), is_heterochromatic=True)),
-                                                             (PrimerAndLocation(strand=1, seq=b'ATCCTACC', chrom_location=(b'chrom1', 1), is_heterochromatic=True),
-                                                              PrimerAndLocation(strand=0, seq=b'GTAGGGCA', chrom_location=(b'chrom1', 30), is_heterochromatic=True))],
+                                                              PrimerAndLocation(strand=1, seq=b'ATCCTACC', chrom_location=(b'chrom1', 1), is_heterochromatic=True))],
                                 (b'GGTAGGAT', b'GATGGTAG'): [(PrimerAndLocation(strand=0, seq=b'GGTAGGAT', chrom_location=(b'chrom1', 0), is_heterochromatic=False),
-                                                              PrimerAndLocation(strand=1, seq=b'ATCCTACC', chrom_location=(b'chrom1', 1), is_heterochromatic=True)),
-                                                             (PrimerAndLocation(strand=1, seq=b'ATCCTACC', chrom_location=(b'chrom1', 1), is_heterochromatic=True),
-                                                              PrimerAndLocation(strand=0, seq=b'GATGGTAG', chrom_location=(b'chrom1', 40), is_heterochromatic=True))],
+                                                              PrimerAndLocation(strand=1, seq=b'ATCCTACC', chrom_location=(b'chrom1', 1), is_heterochromatic=True))],
                                 (b'GTAGGGCA', b'GATGGTAG'): [(PrimerAndLocation(strand=0, seq=b'GTAGGGCA', chrom_location=(b'chrom4', 40), is_heterochromatic=True),
                                                               PrimerAndLocation(strand=1, seq=b'CTACCATC', chrom_location=(b'chrom4', 60), is_heterochromatic=True))]}
 

@@ -9,7 +9,6 @@ from primer_explorer.pcr import (select_primers_combinations,
                                  get_pcr_products_in_sets)
 from primer_explorer.stats import get_stats_by_pair_in_sets
 from primer_explorer.report import write_stats_in_excel
-from primer_explorer.regions import write_primer_regions_in_bed_format
 
 
 def parse_arguments():
@@ -94,8 +93,6 @@ def main():
     stats = get_stats_by_pair_in_sets(product_results)
 
     write_stats_in_excel(report_fhand.name, stats)
-
-    write_primer_regions_in_bed_format(product_results, bed_out_dir)
 
 
 if __name__ == '__main__':

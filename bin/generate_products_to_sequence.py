@@ -18,6 +18,8 @@ def parse_arguments():
                         type=argparse.FileType('rb'), required=True)
     parser.add_argument('-o', '--out_dir', help='directory to output beds',
                         required=True)
+    msg = 'Size of the read to generate regions. Depends on sequence technology you want to predict',
+    parser.add_argument('-r', '--read_size', help=msg, required=True)
     return parser
 
 
@@ -26,17 +28,23 @@ def get_args():
     args = parser.parse_args()
     pcr_products_fpath = args.pcr_products
     out_dir = args.out_dir
-    return {'pcr_products_fpath': pcr_products_fpath, 'out_dir': out_dir}
+    read_length = args.read_size
+    return {'pcr_products_fpath': pcr_products_fpath, 'out_dir': out_dir,
+            'read_length': read_length}
 
 
 def main():
     args = get_args()
     pcr_products_sets = pickle.load(args['pcr_products_fpath'])
     out_dir = Path(args['out_dir'])
+    read_length = args['read_length']
     if not out_dir.exists():
         out_dir.mkdir(exist_ok=True)
 
-    write_primer_regions_in_bed_format(pcr_products_sets, out_dir)
+    write_primer_regions_in_bed_format(pcr_products_sets, out_dir,
+                                       min_product_length=100,
+                                       max_product_length=700,
+                                       read_length=read_length)
 
 
 if __name__ == "__main__":

@@ -3,6 +3,7 @@ from itertools import combinations
 
 from primer_explorer.primer3.primer3 import reverse_complement
 from primer_explorer.combinations import get_compatible_groups_of_primers
+from primer_explorer.stats import filter_by_length
 
 PrimerAndLocation = namedtuple('PrimerAndLocation', ('strand', 'seq', 'chrom_location', 'is_heterochromatic'))
 
@@ -18,7 +19,7 @@ def _get_pcr_products(fwd_primers_locations, rev_primers_locations, max_pcr_prod
     rev_locs = [PrimerAndLocation(1, loc.seq, loc.chrom_location, loc.is_heterochromatic) for loc in rev_primers_locations]
     locs.extend(rev_locs)
     locs = sorted(locs, key=lambda PrimerAndLocation: (PrimerAndLocation.chrom_location))
-    pcr_products = [(loc1, loc2) for loc1, loc2 in zip(locs[:-1], locs[1:]) if (loc1.strand != loc2.strand) and (loc1.chrom_location[0] == loc2.chrom_location[0]) and abs(loc1.chrom_location[1] - loc2.chrom_location[1]) < max_pcr_product_length]
+    pcr_products = [(loc1, loc2) for loc1, loc2 in zip(locs[:-1], locs[1:]) if (loc1.strand == 0) and (loc1.strand != loc2.strand) and (loc1.chrom_location[0] == loc2.chrom_location[0]) and abs(loc1.chrom_location[1] - loc2.chrom_location[1]) < max_pcr_product_length]
     return pcr_products
 
 
@@ -56,3 +57,12 @@ def get_pcr_products_in_sets(primer_combinations, kmers, kmers_locations,
                         'products': pcr_products}
         product_results.append(primer_group)
     return product_results
+
+
+def pcr_products_to_regions(pcr_products, min_length, max_length, read_length):
+    pcr_products = filter_by_length(pcr_products, min_length=min_length, max_length=max_length)
+    for pcr_product in pcr_products:
+        chrom_fwd = pcr_product[0].chrom_location
+        chrom_rev = pcr_product[1].chrom_location
+        yield "{}\t{}\t{}".format(chrom_fwd[0].decode(), chrom_fwd[1], chrom_fwd[1] + read_length)
+        yield "{}\t{}\t{}".format(chrom_rev[0].decode(), chrom_rev[1] - read_length, chrom_rev[1])
