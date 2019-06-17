@@ -93,10 +93,6 @@ def get_pcr_products_counts(pcr_products, min_length, max_length, genome_length)
     pcr_products_counts = Counter()
     total_products = get_total_nondimer_pcr_products(pcr_products)
     pcr_products_counts[NUM_OF_POSSIBLE_PRODUCTS_10000] = len(total_products)
-    union_sites = get_union_sites_for_primers(pcr_products)
-
-    pcr_products_counts[NUM_UNION_SITES_P1] = union_sites['primer1']
-    pcr_products_counts[NUM_UNION_SITES_P2] = union_sites['primer2']
 
     sequenciable_products = filter_by_length(total_products, min_length, max_length)
     pcr_products_counts[NUM_SEQUENCIABLE_PRODUCTS] = {'min': min_length,
@@ -126,9 +122,15 @@ def get_pcr_products_counts(pcr_products, min_length, max_length, genome_length)
     pcr_products_counts[ADJUSTED_PERCENTAGE_OF_SEQUENCIABLE_NUCLEOTIDES] = adjusted_perct_of_sequenciable_nucleotides
     return pcr_products_counts
 
+def _get_union_sites_for_kmer(kmer, kmer_locations):
+    forward_unions = len(kmer_locations[kmer])
+    rev_kmer = reverse_complement(kmer)
+    rev_unions = len(kmer_locations[rev_kmer])
+
+    return forward_unions + rev_unions
 
 def get_stats_by_pair_in_sets(products_sets, min_length=100, max_length=1000,
-                              genome_length=None):
+                              genome_length=None, kmers_locations=None):
     stats = {}
     for set_index, set_info in enumerate(products_sets):
         stats[set_index] = {'primers': [p.decode() for p in set_info['primers']],
@@ -140,6 +142,9 @@ def get_stats_by_pair_in_sets(products_sets, min_length=100, max_length=1000,
                                              max_length=max_length,
                                              genome_length=genome_length)
             decoded_pair = tuple([p.decode() for p in pair])
+            counts[NUM_UNION_SITES_P1] = _get_union_sites_for_kmer(pair[0], kmers_locations)
+            counts[NUM_UNION_SITES_P2] = _get_union_sites_for_kmer(pair[1], kmers_locations)
+
             stats[set_index]['stats'][decoded_pair] = counts
     return stats
 

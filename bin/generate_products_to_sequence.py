@@ -27,16 +27,16 @@ def parse_arguments():
 def get_args():
     parser = parse_arguments()
     args = parser.parse_args()
-    pcr_products_fpath = args.pcr_products
+    pcr_products_fhand = args.pcr_products
     out_dir = args.out_dir
     read_length = args.read_size
-    return {'pcr_products_fpath': pcr_products_fpath, 'out_dir': out_dir,
+    return {'pcr_products_fhand': pcr_products_fhand, 'out_dir': out_dir,
             'read_length': read_length}
 
 
 def main():
     args = get_args()
-    pcr_products_sets = pickle.load(args['pcr_products_fpath'])
+    pcr_products_sets = pickle.load(args['pcr_products_fhand'])
     out_dir = Path(args['out_dir'])
     read_length = args['read_length']
     if not out_dir.exists():
