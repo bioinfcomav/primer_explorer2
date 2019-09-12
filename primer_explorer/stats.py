@@ -122,12 +122,14 @@ def get_pcr_products_counts(pcr_products, min_length, max_length, genome_length)
     pcr_products_counts[ADJUSTED_PERCENTAGE_OF_SEQUENCIABLE_NUCLEOTIDES] = adjusted_perct_of_sequenciable_nucleotides
     return pcr_products_counts
 
+
 def _get_union_sites_for_kmer(kmer, kmer_locations):
     forward_unions = len(kmer_locations[kmer])
     rev_kmer = reverse_complement(kmer)
     rev_unions = len(kmer_locations[rev_kmer])
 
     return forward_unions + rev_unions
+
 
 def get_stats_by_pair_in_sets(products_sets, min_length=100, max_length=1000,
                               genome_length=None, kmers_locations=None):
