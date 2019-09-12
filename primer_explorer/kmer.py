@@ -253,7 +253,7 @@ def generate_kmer_locations(genome_fhand, kmer_len, heterochromatic_regions,
     kmer_generator = KmerLocationGenerator(genome, kmer_len, heterochromatic_regions,
                                            kmers_to_keep=kmers_to_keep)
     kmer_locations = kmer_generator.generate_kmer_locations()
-
+    kmer_locations = list(kmer_locations)
     filt_kmers_by_het_stats = filter_kmers_by_heterochromatin_stats(kmer_generator,
                                                                     criterion="euchromatin abundance",
                                                                     max_num_kmers=num_kmers_to_keep)
