@@ -187,8 +187,7 @@ def get_top_kmers_by_euchromatin_ratio(kmer_generator, max_num_kmers=1000, min_a
 
 def filter_kmers_by_heterochromatin_stats(kmer_generator, max_num_kmers=1000,
                                           criterion="euchromatin abundance",
-                                          min_abundance=1000,
-                                          kmer_locations=None):
+                                          min_abundance=1000):
     if criterion == "euchromatin abundance":
         return get_top_kmers_by_euchromatin_abundance(kmer_generator,
                                                       max_num_kmers)
@@ -200,8 +199,7 @@ def filter_kmers_by_heterochromatin_stats(kmer_generator, max_num_kmers=1000,
                                                   max_num_kmers=max_num_kmers,
                                                   min_abundance=min_abundance)
     if criterion == "total abundance":
-        return get_top_kmers_by_minimum_abundance(kmer_locations,
-                                                  kmer_generator,
+        return get_top_kmers_by_minimum_abundance(kmer_generator,
                                                   max_num_kmers=max_num_kmers,
                                                   min_abundance=0)
     raise RuntimeError(
@@ -256,12 +254,9 @@ def generate_kmer_locations(genome_fhand, kmer_len, heterochromatic_regions,
                                            kmers_to_keep=kmers_to_keep)
     kmer_locations = kmer_generator.generate_kmer_locations()
     kmer_locations = list(kmer_locations)
-#     kmers = [k for k in kmer_generator.kmer_counters[False].keys()]
-#     return kmers, pack_kmer_locations(kmer_locations)
     filt_kmers_by_het_stats = filter_kmers_by_heterochromatin_stats(kmer_generator,
                                                                     criterion="euchromatin abundance",
-                                                                    max_num_kmers=num_kmers_to_keep,
-                                                                    kmer_locations=kmer_locations)
+                                                                    max_num_kmers=num_kmers_to_keep)
     filt_kmers_by_primer3 = filter_kmers_by_primer3(filt_kmers_by_het_stats, num_kmers_to_keep)
     filtered_kmers = filter_kmers_by_revcomp(filt_kmers_by_primer3, kmer_generator.kmer_counters)
     packed_kmers = pack_kmer_locations(kmer_locations)

@@ -81,7 +81,8 @@ def main():
 
     pickle.dump(product_results, pcr_products_fhand, pickle.HIGHEST_PROTOCOL)
 
-    stats = get_stats_by_pair_in_sets(product_results)
+    stats = get_stats_by_pair_in_sets(product_results,
+                                      kmers_locations=kmers_locations)
 
     write_stats_in_excel(report_fhand.name, stats)
 
