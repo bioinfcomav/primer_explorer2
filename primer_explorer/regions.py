@@ -70,3 +70,4 @@ def write_primer_regions_in_bed_format(product_results, out_dir,
                 lines = pcr_products_to_regions(pcr_products, min_product_length,
                                                 max_product_length, read_length)
                 out_fhand.write("\n".join(lines))
+            done_pairs.append(pair)
