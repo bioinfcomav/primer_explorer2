@@ -69,10 +69,12 @@ def main():
         cache_dir.mkdir(exist_ok=True)
 
     pcr_products_fhand = args['products_fhand']
+    kmers_to_keep = None
 
     kmers, kmers_locations = get_kmers(genome_fhand.name,
                                        heterochromatic_regions_fhand.name,
-                                       kmer_len, cache_dir, num_kmers_to_keep=top_kmers)
+                                       kmer_len, cache_dir, num_kmers_to_keep=top_kmers,
+                                       kmers_to_keep=kmers_to_keep)
     primer_combinations = select_primers_combinations(kmers, num_compatible_groups=num_sets)
 
     product_results = get_pcr_products_in_sets(primer_combinations, kmers,

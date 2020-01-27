@@ -42,7 +42,6 @@ class KmerLocationGenerator:
         if kmers_to_keep is not None:
             kmers_to_keep = {kmer: '' for kmer in kmers_to_keep}
         self.kmer_to_keep = kmers_to_keep
-
         self.kmer_counters = {True: Counter(), False: Counter()}
 
         if heterochromatic_regions is None:
@@ -264,10 +263,12 @@ def generate_kmer_locations(genome_fhand, kmer_len, heterochromatic_regions,
 
 
 def get_kmers(genome_fpath, heterochromatic_regions_fpath, kmer_len, cache_dir,
-              num_kmers_to_keep=1000):
+              num_kmers_to_keep=1000, kmers_to_keep=None):
     key = str(genome_fpath)
     key += str(heterochromatic_regions_fpath)
     key += str(kmer_len)
+    if kmers_to_keep:
+        key += str(kmers_to_keep)
     key = hashlib.md5(key.encode()).hexdigest()
     cache_fpath = cache_dir / ('kmers_' + key)
 
@@ -275,13 +276,16 @@ def get_kmers(genome_fpath, heterochromatic_regions_fpath, kmer_len, cache_dir,
         kmers, kmers_locations = pickle.load(cache_fpath.open('rb'))
         return kmers, kmers_locations
     else:
-        genome_fhand = get_fhand(genome_fpath)
-        regions_fhand = get_fhand(heterochromatic_regions_fpath)
-        counters = count_kmers(genome_fhand, kmer_len,
-                               regions_fhand=regions_fhand)
-        genome_fhand.close()
-        regions_fhand.close()
-        most_freq_kmers = [k[0] for k in counters[False].most_common(num_kmers_to_keep)]
+        if kmers_to_keep:
+            most_freq_kmers = kmers_to_keep
+        else:
+            genome_fhand = get_fhand(genome_fpath)
+            regions_fhand = get_fhand(heterochromatic_regions_fpath)
+            counters = count_kmers(genome_fhand, kmer_len,
+                                   regions_fhand=regions_fhand)
+            genome_fhand.close()
+            regions_fhand.close()
+            most_freq_kmers = [k[0] for k in counters[False].most_common(num_kmers_to_keep)]
 
         regions_fhand = get_fhand(heterochromatic_regions_fpath)
         genome_fhand = get_fhand(genome_fpath)
