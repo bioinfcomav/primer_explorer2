@@ -1,2 +1,4 @@
 matplotlib
 openpyxl
+pyrange
+pandas
