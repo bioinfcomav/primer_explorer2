@@ -18,12 +18,15 @@ def parse_arguments():
                         type=argparse.FileType('rb'), required=True)
     parser.add_argument('-o', '--out_dir', help='directory to output beds',
                         required=True)
+    msg = 'kmer length'
+    parser.add_argument('-k', '--kmer_length', help=msg, required=True,
+                        type=int)
     msg = 'Size of the read to generate regions. Depends on sequence technology you want to predict'
     parser.add_argument('-r', '--read_size', help=msg, required=True,
                         type=int)
     msg = 'Min product length produced'
     parser.add_argument('-m', '--min_product_length', help=msg, required=False,
-                        type=int, default=100)
+                        type=int, default=200)
     msg = 'Max product length produced'
     parser.add_argument('-M', '--max_product_length', help=msg, required=False,
                         type=int, default=700)
@@ -38,9 +41,10 @@ def get_args():
     read_length = args.read_size
     max_product_len = args.max_product_length
     min_product_len = args.min_product_length
+    kmer_length = args.kmer_length
     return {'pcr_products_fhand': pcr_products_fhand, 'out_dir': out_dir,
             'read_length': read_length, 'max_product_len': max_product_len,
-            'min_product_len': min_product_len}
+            'min_product_len': min_product_len, 'kmer_length': kmer_length}
 
 
 def main():
@@ -50,13 +54,15 @@ def main():
     read_length = args['read_length']
     min_product_len = args['min_product_len']
     max_product_len = args['max_product_len']
+    kmer_length = args['kmer_length']
     if not out_dir.exists():
         out_dir.mkdir(exist_ok=True)
 
     write_primer_regions_in_bed_format(pcr_products_sets, out_dir,
                                        min_product_length=min_product_len,
                                        max_product_length=max_product_len,
-                                       read_length=read_length)
+                                       read_length=read_length,
+                                       kmer_length=kmer_length)
 
 
 if __name__ == "__main__":

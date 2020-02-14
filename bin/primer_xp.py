@@ -9,6 +9,7 @@ from primer_explorer.pcr import (select_primers_combinations,
                                  get_pcr_products_in_sets)
 from primer_explorer.stats import get_stats_by_pair_in_sets
 from primer_explorer.report import write_stats_in_excel
+from primer_explorer.primer3.primer3 import reverse_complement
 
 
 def parse_arguments():
@@ -34,6 +35,8 @@ def parse_arguments():
                         type=int, default=1000)
     parser.add_argument('-m', '--num_sets', help="number of sets of primers to calculate",
                         type=int, default=3)
+    msg = "Force to look only this kmers"
+    parser.add_argument('-l', '--forced_kmers', nargs="*", help=msg)
 
     return parser
 
@@ -49,10 +52,12 @@ def get_args():
     top_kmers = args.top_kmers
     num_sets = args.num_sets
     report_fhand = args.report
+    forced_kmers = args.forced_kmers
     return {'genome_fhand': genome_fhand, 'regions_fhand': regions_fhand,
             'kmer_size': kmer_size, 'cache_dir': cache_dir,
             'products_fhand': products_fhand, 'top_kmers': top_kmers,
-            'num_sets': num_sets, 'report_fhand': report_fhand}
+            'num_sets': num_sets, 'report_fhand': report_fhand,
+            'forced_kmers': forced_kmers}
 
 
 def main():
@@ -64,17 +69,23 @@ def main():
     top_kmers = args['top_kmers']
     num_sets = args['num_sets']
     report_fhand = args['report_fhand']
-
+    forced_kmers = args['forced_kmers']
     if not cache_dir.exists():
         cache_dir.mkdir(exist_ok=True)
-
     pcr_products_fhand = args['products_fhand']
+
     kmers_to_keep = None
+    if forced_kmers:
+        forced_kmers = [kmer.encode() for kmer in forced_kmers]
+        kmers_to_keep = forced_kmers + [reverse_complement(kmer) for kmer in forced_kmers]
 
     kmers, kmers_locations = get_kmers(genome_fhand.name,
                                        heterochromatic_regions_fhand.name,
                                        kmer_len, cache_dir, num_kmers_to_keep=top_kmers,
                                        kmers_to_keep=kmers_to_keep)
+    if forced_kmers:
+        kmers = forced_kmers
+
     primer_combinations = select_primers_combinations(kmers, num_compatible_groups=num_sets)
 
     product_results = get_pcr_products_in_sets(primer_combinations, kmers,
