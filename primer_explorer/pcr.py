@@ -137,5 +137,5 @@ def pcr_products_to_regions(pcr_products, min_length, max_length, read_length, k
         if chrom_rev[1] - chrom_fwd[1] < read_length:
             yield "{}\t{}\t{}".format(chrom_fwd[0].decode(), chrom_fwd[1], chrom_rev[1] + kmer_length)
         else:
-            yield "{}\t{}\t{}".format(chrom_fwd[0].decode(), chrom_fwd[1], chrom_fwd[1] + read_length)
-            yield "{}\t{}\t{}".format(chrom_rev[0].decode(), chrom_rev[1] + kmer_length - read_length, chrom_rev[1] + kmer_length)
+            yield "{}\t{}\t{}".format(chrom_fwd[0].decode(), chrom_fwd[1] + kmer_length, chrom_fwd[1] + read_length)
+            yield "{}\t{}\t{}".format(chrom_rev[0].decode(), chrom_rev[1] - read_length, chrom_rev[1])
