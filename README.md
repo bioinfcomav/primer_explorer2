@@ -2,6 +2,8 @@
 
 A small library to help seleting primers for K-Seq users .
 
+Authors: P.Ziarsolo, V. Garcia-Carpintero, J.Blanca
+
 This small library provides various scripts to help the user to select the best kmers for your experiment.
 
 ### primer_xp.py
