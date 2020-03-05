@@ -20,7 +20,7 @@ setuptools.setup(
     url="https://github.com/pziarsolo/primer_explorer2",
     packages=find_packages(),
     package_dir={"primer_explorer.primer3": "primer_explorer/primer3"},
-    install_requeriments=requirements,
+    install_requires=requirements,
     package_data={"primer_explorer.primer3": ["primer3_config/*.ds", "primer3_config/*.dh",
                                               "primer3_config/interpretations/*.ds",
                                               "primer3_config/interpretations/*.dh",
