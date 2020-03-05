@@ -6,7 +6,7 @@ from primer_explorer._version import version
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-requirements = ['matplotlib', 'openpyxl', 'pyrange', 'pandas']
+requirements = ['matplotlib', 'openpyxl', 'pyranges', 'pandas']
 scripts = [str(f) for f in Path('./bin').glob('*.py')]
 
 setuptools.setup(
@@ -14,7 +14,7 @@ setuptools.setup(
     version=version,
     author="P.Ziarsolo",
     author_email="pziarsolo@gmail.com",
-    description="A small library to help FAR users to select the primers to use.",
+    description="A small library to help K-seq users to select primers.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/pziarsolo/primer_explorer2",
