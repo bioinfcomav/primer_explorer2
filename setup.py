@@ -6,7 +6,7 @@ from primer_explorer._version import version
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-requeriments = [line.strip() for line in open('requeriments.txt')]
+requirements = ['matplotlib', 'openpyxl', 'pyrange', 'pandas']
 scripts = [str(f) for f in Path('./bin').glob('*.py')]
 
 setuptools.setup(
@@ -20,12 +20,13 @@ setuptools.setup(
     url="https://github.com/pziarsolo/primer_explorer2",
     packages=find_packages(),
     package_dir={"primer_explorer.primer3": "primer_explorer/primer3"},
-    install_requeriments=requeriments,
+    install_requeriments=requirements,
     package_data={"primer_explorer.primer3": ["primer3_config/*.ds", "primer3_config/*.dh",
                                               "primer3_config/interpretations/*.ds",
                                               "primer3_config/interpretations/*.dh",
                                               "bin/*"]},
     scripts=scripts,
+    license="GNU General Public License v3.0",
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
