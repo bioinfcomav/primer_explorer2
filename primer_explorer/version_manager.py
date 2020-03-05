@@ -34,7 +34,7 @@ class VersionManager:
     @version.setter
     def version(self, new_version):
         with open(self.version_fpath, 'w') as fhand:
-            fhand.write(f'version = "{new_version}"\n')
+            fhand.write('version = "{new_version}"\n'.format(new_version))
             fhand.flush()
 
     def update_version(self, pre_commit=True):
