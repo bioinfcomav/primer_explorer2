@@ -13,7 +13,7 @@ from primer_explorer.primer3.primer3 import reverse_complement
 
 
 def parse_arguments():
-    desc = "Search from kmers to use with pkg"
+    desc = "Search primers to use with K-Seq"
     parser = argparse.ArgumentParser(description=desc)
     parser.add_argument('-f', '--genome_path',
                         help='Path to the genome in fasta format',
