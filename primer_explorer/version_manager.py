@@ -42,8 +42,11 @@ class VersionManager:
         items = git_version.split('-')
         if pre_commit:
             git_version = items[0]
-            commit_num = int(items[1]) + 1
-            git_version += '.dev{}'.format(commit_num)
+            try:
+                commit_num = int(items[1]) + 1
+                git_version += '.dev{}'.format(commit_num)
+            except IndexError:
+                pass
         else:
             git_version = git_version.replace('-', '.dev', 1).replace('-', '+')[1:]
         self.version = git_version
