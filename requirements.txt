@@ -1,4 +1,4 @@
 matplotlib
 openpyxl
-pyrange
+pyranges
 pandas
