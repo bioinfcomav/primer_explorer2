@@ -49,7 +49,7 @@ class VersionManager:
                 pass
         else:
             git_version = git_version.replace('-', '.dev', 1).replace('-', '+')[1:]
-        self.version = git_version
+        self.version = git_version.replace('.dirty', '')
 
 
 if __name__ == '__main__':

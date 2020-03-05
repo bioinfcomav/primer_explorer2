@@ -1,1 +1,1 @@
-version = "0.3.dirty"
+version = "0.3.dev2"
