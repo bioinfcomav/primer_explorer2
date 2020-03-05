@@ -21,7 +21,7 @@ MAX_PCR_PRODUCT_LENGTH = 1000
 MIN_PCR_VIABLE_LENGTH = 300
 SHORT_PRODUCTS_CUTOFF = 0.65
 PRIMER3_CONFIG_FPATH = str(CODE_DIR / "primer3/primer3_config/") + '/'
-PRIMER3_CORE_FPATH = "primer3_core"
+PRIMER3_CORE_FPATH = str(CODE_DIR / 'primer3/bin/primer3_core')
 
 GFF_FEATURES = ["mRNA", "exon", "five_prime_UTR", "three_prime_UTR", 'intron',
                 'gene']

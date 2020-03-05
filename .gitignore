@@ -3,3 +3,7 @@
 .pydevproject
 .vscode/*
 primer_explorer/.code-workspace.code-workspace
+build/*
+dist/*
+primer_explorer2.egg-info/*
+

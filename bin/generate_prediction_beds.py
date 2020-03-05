@@ -13,7 +13,8 @@ def get_pcr_products_sets(pcr_products_fhand):
 
 
 def parse_arguments():
-    parser = argparse.ArgumentParser(description="Create bed files for pcr_products")
+    desc = '"Create bed files with the predictions for each kmer pair"'
+    parser = argparse.ArgumentParser(description=desc)
     parser.add_argument('-p', '--pcr_products', help='path to pcr products',
                         type=argparse.FileType('rb'), required=True)
     parser.add_argument('-o', '--out_dir', help='directory to output beds',

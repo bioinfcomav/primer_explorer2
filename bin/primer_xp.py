@@ -13,13 +13,15 @@ from primer_explorer.primer3.primer3 import reverse_complement
 
 
 def parse_arguments():
-    parser = argparse.ArgumentParser(description="Look for working primers")
+    desc = "Search from kmers to use with pkg"
+    parser = argparse.ArgumentParser(description=desc)
     parser.add_argument('-f', '--genome_path',
                         help='Path to the genome in fasta format',
                         type=argparse.FileType('rb'), required=True)
-    parser.add_argument('-r', '--heterochromatin_regions',
-                        help='Path to bed file with heterochromatin',
+    msg = 'path to a bed files with regions yu want to avoid for your primers'
+    parser.add_argument('-r', '--heterochromatin_regions', help=msg,
                         type=argparse.FileType('rb'))
+
     parser.add_argument('-k', '--kmer_size', type=int, default=8,
                         help='Size of the kmers to look for')
     parser.add_argument('-c', '--cache_dir', help='cache dir',
@@ -30,12 +32,13 @@ def parse_arguments():
     parser.add_argument('-o', '--report', required=True,
                         help='Path to write report in excel format',
                         type=argparse.FileType('wb'))
-
-    parser.add_argument('-t', '--top_kmers', help='number of top kmers to use',
+    parser.add_argument('-t', '--top_kmers', help='Max umber of best kmers to use',
                         type=int, default=1000)
+
     parser.add_argument('-m', '--num_sets', help="number of sets of primers to calculate",
                         type=int, default=3)
-    msg = "Force to look only this kmers"
+
+    msg = "Force to look only for this kmers"
     parser.add_argument('-l', '--forced_kmers', nargs="*", help=msg)
 
     return parser
