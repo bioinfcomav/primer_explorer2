@@ -1,6 +1,7 @@
 import setuptools
 from pathlib import Path
 from setuptools import find_packages
+from primer_explorer._version import version
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
@@ -10,7 +11,7 @@ scripts = [str(f) for f in Path('./bin').glob('*.py')]
 
 setuptools.setup(
     name="primer_explorer2",  # Replace with your own username
-    version="0.0.2",
+    version=version,
     author="P.Ziarsolo",
     author_email="pziarsolo@gmail.com",
     description="A small library to help FAR users to select the primers to use.",
