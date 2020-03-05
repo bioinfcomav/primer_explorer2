@@ -6,6 +6,7 @@ CODE_DIR = Path(__file__).parent
 BLACKLISTED_SEQS = [b'N', b'AAAA', b'TTTT', b'CCCC', b'GGGG']
 
 G_CHAR = ord(b'G')
+
 C_CHAR = ord(b'C')
 
 LOW_GC = 0.5
