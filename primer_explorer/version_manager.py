@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import os
 import subprocess
 
@@ -34,16 +34,14 @@ class VersionManager:
     @version.setter
     def version(self, new_version):
         with open(self.version_fpath, 'w') as fhand:
-            print(new_version, self.version_fpath)
             fhand.write('version = "{}"\n'.format(new_version))
             fhand.flush()
 
     def update_version(self, pre_commit=True):
         git_version = self.get_git_version()
         items = git_version.split('-')
-
         if pre_commit:
-            git_version = items[0][1:]
+            git_version = items[0]
             commit_num = int(items[1]) + 1
             git_version += '.dev{}'.format(commit_num)
         else:
