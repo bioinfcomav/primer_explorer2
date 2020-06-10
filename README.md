@@ -6,6 +6,14 @@ Authors: P.Ziarsolo, V. Garcia-Carpintero, J.Blanca
 
 This small library provides various scripts to help the user to select the best kmers for your experiment.
 
+
+## Installation
+    
+    a) pip install primer_explorer2
+
+    b) python setup.py install
+
+
 ### primer_xp.py
     
     It tries to select the best 10 primers for a K-Seq experiment and predicts the outcome of all 10 primer combinations.
