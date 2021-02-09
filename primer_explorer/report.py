@@ -13,9 +13,10 @@ from primer_explorer.stats import (NUM_SEQUENCIABLE_PRODUCTS,
                                    PERCENTAGE_OF_SEQUENCIABLE_NUCLEOTIDES,
                                    NUM_UNION_SITES_P1, NUM_UNION_SITES_P2)
 
-from openpyxl.styles import Font, colors
+from openpyxl.styles import Font
 from openpyxl.utils.cell import get_column_letter
-
+BLACK = '00000000'
+RED = '00FF0000'
 LABELS_TO_REPORT = OrderedDict([
     (NUM_UNION_SITES_P1, {'code': 'P1_COUNT',
                                'label': 'Num Union sites os primer1'}),
@@ -143,13 +144,13 @@ def _write_main_table(sheet, labels, stats):
 #         print(primer_index)
 #         print(primer)
         cell = sheet.cell(column=col_index, row=2, value='Primer_{}'.format(primer_index))
-        font = Font(color=colors.BLACK, bold=True)
+        font = Font(color=BLACK, bold=True)
         cell.font = font
         sheet.cell(column=col_index, row=3, value=primer)
 
         row_index = index + 4
         cell = sheet.cell(column=1, row=row_index, value='Primer_{}'.format(primer_index))
-        font = Font(color=colors.BLACK, bold=True)
+        font = Font(color=BLACK, bold=True)
         cell.font = font
         sheet.cell(column=2, row=row_index, value=primer)
 
@@ -178,7 +179,7 @@ def _write_main_table(sheet, labels, stats):
             cell = sheet.cell(row=index1 + 3, column=index2 + 2, value=num_sequenciable_products)
             ratio_secuenciable_products = num_sequenciable_products / counts[NUM_OF_POSSIBLE_PRODUCTS_700]
             if ratio_secuenciable_products < 0.90:
-                cell.font = Font(color=colors.RED)
+                cell.font = Font(color=RED)
     return used_combinations
 
 
@@ -214,7 +215,7 @@ def _write_header(sheet, stats):
     sheet['A1'] = table_label.format(min_sequenciable, max_sequenciable)
     sheet.merge_cells('A1:E1')
     sheet['G1'] = 'Cells in red: Short products are more than 10% of amplificable'
-    sheet['G1'].font = Font(color=colors.RED)
+    sheet['G1'].font = Font(color=RED)
     sheet.merge_cells('G1:K1')
 
 
