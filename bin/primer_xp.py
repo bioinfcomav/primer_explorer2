@@ -20,7 +20,7 @@ def parse_arguments():
                         type=argparse.FileType('rb'), required=True)
     msg = 'path to a bed files with regions yu want to avoid for your primers'
     parser.add_argument('-r', '--heterochromatin_regions', help=msg,
-                        type=argparse.FileType('rb'))
+                        type=argparse.FileType('rb'), required=True)
 
     parser.add_argument('-k', '--kmer_size', type=int, default=8,
                         help='Size of the kmers to look for')
@@ -82,8 +82,9 @@ def main():
         forced_kmers = [kmer.encode() for kmer in forced_kmers]
         kmers_to_keep = forced_kmers + [reverse_complement(kmer) for kmer in forced_kmers]
 
+    heterocromatic_fpath = heterochromatic_regions_fhand.name if heterochromatic_regions_fhand else None
     kmers, kmers_locations = get_kmers(genome_fhand.name,
-                                       heterochromatic_regions_fhand.name,
+                                       heterocromatic_fpath,
                                        kmer_len, cache_dir, num_kmers_to_keep=top_kmers,
                                        kmers_to_keep=kmers_to_keep)
     if forced_kmers:
