@@ -275,33 +275,42 @@ def get_kmers(genome_fpath, heterochromatic_regions_fpath, kmer_len, cache_dir,
     if cache_fpath.exists():
         kmers, kmers_locations = pickle.load(cache_fpath.open('rb'))
         return kmers, kmers_locations
-    else:
-        if kmers_to_keep:
-            most_freq_kmers = kmers_to_keep
-        else:
-            genome_fhand = get_fhand(genome_fpath)
-            regions_fhand = get_fhand(heterochromatic_regions_fpath)
-            counters = count_kmers(genome_fhand, kmer_len,
-                                   regions_fhand=regions_fhand)
-            genome_fhand.close()
-            regions_fhand.close()
-            most_freq_kmers = [k[0] for k in counters[False].most_common(num_kmers_to_keep)]
 
-        regions_fhand = get_fhand(heterochromatic_regions_fpath)
+    if kmers_to_keep:
+        most_freq_kmers = kmers_to_keep
+    else:
+        if heterochromatic_regions_fpath:
+            regions_fhand = get_fhand(heterochromatic_regions_fpath)
+        else:
+            regions_fhand = None
         genome_fhand = get_fhand(genome_fpath)
 
-        heterochromatic_regions = GenomeRegions(bed_fhand=regions_fhand)
-        kmers, kmers_locations = generate_kmer_locations(genome_fhand,
-                                                         kmer_len=kmer_len,
-                                                         heterochromatic_regions=heterochromatic_regions,
-                                                         kmers_to_keep=most_freq_kmers)
-        cache_fhand = open(str(cache_fpath), "wb")
-        pickle.dump((kmers, kmers_locations), cache_fhand, pickle.HIGHEST_PROTOCOL)
-        cache_fhand.close()
-        regions_fhand.close()
+        counters = count_kmers(genome_fhand, kmer_len,
+                               regions_fhand=regions_fhand)
         genome_fhand.close()
+        if regions_fhand is not None:
+            regions_fhand.close()
+        most_freq_kmers = [k[0] for k in counters[False].most_common(num_kmers_to_keep)]
 
-        return kmers, kmers_locations
+    if heterochromatic_regions_fpath:
+        regions_fhand = get_fhand(heterochromatic_regions_fpath)
+    genome_fhand = get_fhand(genome_fpath)
+    if regions_fhand is not None:
+        heterochromatic_regions = GenomeRegions(bed_fhand=regions_fhand)
+    else:
+        heterochromatic_regions = None
+    kmers, kmers_locations = generate_kmer_locations(genome_fhand,
+                                                     kmer_len=kmer_len,
+                                                     heterochromatic_regions=heterochromatic_regions,
+                                                     kmers_to_keep=most_freq_kmers)
+    cache_fhand = open(str(cache_fpath), "wb")
+    pickle.dump((kmers, kmers_locations), cache_fhand, pickle.HIGHEST_PROTOCOL)
+    cache_fhand.close()
+    if regions_fhand is not None:
+        regions_fhand.close()
+    genome_fhand.close()
+
+    return kmers, kmers_locations
 
 
 def count_kmers(fhand, kmer_len, regions_fhand=None):

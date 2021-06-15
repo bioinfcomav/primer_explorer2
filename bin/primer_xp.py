@@ -20,7 +20,7 @@ def parse_arguments():
                         type=argparse.FileType('rb'), required=True)
     msg = 'path to a bed files with regions yu want to avoid for your primers'
     parser.add_argument('-r', '--heterochromatin_regions', help=msg,
-                        type=argparse.FileType('rb'), required=True)
+                        type=argparse.FileType('rb'))
 
     parser.add_argument('-k', '--kmer_size', type=int, default=8,
                         help='Size of the kmers to look for')
